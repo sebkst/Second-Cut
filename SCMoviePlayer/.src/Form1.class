@@ -1,0 +1,20 @@
+' Gambas class file
+
+Public Sub ToggleButton1_Click()
+  
+  Print "click"
+  
+End
+
+Public Sub tog_Click()
+   Dim t As ToggleButton
+   
+   For Each t In [ToggleButton1, ToggleButton2, ToggleButton3, ToggleButton4, ToggleButton5]
+    If Mouse.Inside(t) Then 
+      t.Value = Not t.Value
+    Else
+      t.Value = False
+    Endif
+   Next 
+   
+End

@@ -1,0 +1,131 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(33.1429,15,104,55)
+  Foreground = &HFFFFFF&
+  Text = ("Second Cut Movie player")
+  Icon = Picture["logo.png"]
+  Picture = Picture["centre.png"]
+  { TxtAbout Label
+    MoveScaled(1,1,101,37)
+    Text = ("This is a test version.\nThe scrolbar is disabled. It just indicates the current position read in the movie.\nLogic of pressing a button :\nIf no movie is playing, it plays the movie at the button' speed (normal, half or quarter).\nIf a movie is playing but at a different speed, then it changes the speed.\nIf a movie is playing at the very same speed of the button, then it will make it pause.  \n\nactive keys : s r p q h f  \nalso active in capital letters\ns : stops the video (pause)\nRecord button is disabed. (so nothing happens when you press 'R' or 'r')\np: Replay Last video at normal speed (same as press play button)\nh: Replay Last video at half speed (same as press 0.5x play button)\nq: Replay Last video at quarter speed (same as press 0.25 play button)\nf: Replay Last video frame by frame\n\nother mode :  to view frame by frame, clic with left button inside the video image.\nKeep the left button pressed will activate a frame by frame automatic replay.\nWhen you release the mouse button, the movie will be paused (auto refresh stops).\nThe frame refresh frequency is determined by the horizontal distance between\n the mouse cursor and the center of the video frame.\nMeaning if you press in the center of the frame, the frames wil refresh very slowly.\nIf you press near the right border, or next to the left side of the frame,\nthen the frame will refresh very quickly, close to normal speed.\nTo modify te speed, just drag the mouse cursor closer to the center\n or to the edges (move while keeping the left button pressed).")
+    Alignment = Align.Left
+    Border = Border.Sunken
+  }
+  { panButton Panel
+    MoveScaled(0,38,82,16)
+    { VBox1 VBox
+      MoveScaled(0,0,82,16)
+      { sbFrames ScrollBar
+        MoveScaled(0,1,81,3)
+        Enabled = False
+      }
+      { HBox1 HBox
+        MoveScaled(0,4,81,7)
+        { btnOpen Button
+          MoveScaled(0,0,13,7)
+          Background = &H000000&
+          Foreground = &HFFFFFF&
+          ToolTip = ("open file ...")
+          Picture = Picture["icon:/huge/open"]
+        }
+        { btnPlayQuarter ToggleButton
+          MoveScaled(13,0,13,7)
+          Background = &H000000&
+          Foreground = &HFFFFFF&
+          ToolTip = ("play at quarter speed")
+          Text = ("0.25x")
+          Picture = Picture["icon:/huge/play"]
+        }
+        { btnPlayHalf ToggleButton
+          MoveScaled(26,0,12,7)
+          Background = &H000000&
+          Foreground = &HFFFFFF&
+          ToolTip = ("play at half speed")
+          Text = ("0.5x")
+          Picture = Picture["icon:/huge/play"]
+        }
+        { btnPlay ToggleButton
+          MoveScaled(38,0,11,7)
+          Background = &H000000&
+          Foreground = &HFFFFFF&
+          ToolTip = ("play at normal speed")
+          Text = ("         ")
+          Picture = Picture["icon:/huge/play"]
+        }
+        { btnPlay2x ToggleButton
+          MoveScaled(49,0,11,7)
+          Visible = False
+          Enabled = False
+          Background = &H000000&
+          Foreground = &HFFFFFF&
+          Text = ("2x")
+          Picture = Picture["icon:/huge/play"]
+        }
+        { btnPlay4x ToggleButton
+          MoveScaled(60,0,11,7)
+          Visible = False
+          Enabled = False
+          Background = &H000000&
+          Foreground = &HFFFFFF&
+          Text = ("4x")
+          Picture = Picture["icon:/huge/play"]
+        }
+        { btnRec Button
+          MoveScaled(73,0,7,7)
+          Enabled = False
+          Background = &H000000&
+          Foreground = &HFFFFFF&
+          ToolTip = ("record")
+          Picture = Picture["icon:/huge/record"]
+        }
+      }
+      { HBox2 HBox
+        MoveScaled(0,11,81,5)
+        { txtcmd TextBox
+          MoveScaled(0,0,22,5)
+          Background = &H000000&
+          Foreground = &HFFFFFF&
+          Alignment = Align.Right
+        }
+        { btnKill Button
+          MoveScaled(23,0,5,5)
+          ToolTip = ("stop the movie")
+          Picture = Picture["icon:/small/eject"]
+        }
+        { Labelvd Label
+          MoveScaled(39,0,13,5)
+          Foreground = &HFFFFFF&
+          Text = ("Camera:    ")
+          Alignment = Align.Right
+        }
+        { cbVideoDevice ComboBox
+          MoveScaled(52,0,27,5)
+          Enabled = False
+          Background = Color.ButtonBackground
+          Foreground = &HFFFFFF&
+          ToolTip = ("webcam device")
+          List = [("/dev/video0"), ("/dev/video1"), ("/dev/video2")]
+        }
+      }
+    }
+  }
+  { dwgMoviePlayer DrawingArea
+    MoveScaled(29,15,9,5)
+    Visible = False
+    Enabled = False
+    Background = &H000000&
+    Focus = True
+  }
+  { timShow #Timer
+    #MoveScaled(36,11)
+    Delay = 500
+  }
+  { Timframes #Timer
+    #MoveScaled(12,38)
+  }
+  { moveMouseBack #Timer
+    #MoveScaled(5,50)
+    Delay = 90
+  }
+}
