@@ -27,7 +27,7 @@ msgstr ""
 msgid "Second Cut Movie player"
 msgstr ""
 
-#: FMoviePlayer.form:35
+#: FMoviePlayer.form:35 FmoviePlayerToggleBUTTONS.form:31
 msgid ""
 "This is a test version.\n"
 "The scrolbar is disabled. It just indicates the current position read in the "
@@ -65,63 +65,63 @@ msgid ""
 " or to the edges (move while keeping the left button pressed)."
 msgstr ""
 
-#: FMoviePlayer.form:58
+#: FMoviePlayer.form:58 FmoviePlayerToggleBUTTONS.form:54
 msgid "open file ..."
 msgstr ""
 
-#: FMoviePlayer.form:66
+#: FMoviePlayer.form:66 FmoviePlayerToggleBUTTONS.form:62
 msgid "play at quarter speed"
 msgstr ""
 
-#: FMoviePlayer.form:67
+#: FMoviePlayer.form:67 FmoviePlayerToggleBUTTONS.form:63
 msgid "0.25x"
 msgstr ""
 
-#: FMoviePlayer.form:75
+#: FMoviePlayer.form:75 FmoviePlayerToggleBUTTONS.form:71
 msgid "play at half speed"
 msgstr ""
 
-#: FMoviePlayer.form:76
+#: FMoviePlayer.form:76 FmoviePlayerToggleBUTTONS.form:72
 msgid "0.5x"
 msgstr ""
 
-#: FMoviePlayer.form:84
+#: FMoviePlayer.form:84 FmoviePlayerToggleBUTTONS.form:80
 msgid "play at normal speed"
 msgstr ""
 
-#: FMoviePlayer.form:95 Form1.form:133
+#: FMoviePlayer.form:95 FmoviePlayerToggleBUTTONS.form:91 Form1.form:133
 msgid "2x"
 msgstr ""
 
-#: FMoviePlayer.form:105 Form1.form:126
+#: FMoviePlayer.form:105 FmoviePlayerToggleBUTTONS.form:101 Form1.form:126
 msgid "4x"
 msgstr ""
 
-#: FMoviePlayer.form:114
+#: FMoviePlayer.form:114 FmoviePlayerToggleBUTTONS.form:110
 msgid "record"
 msgstr ""
 
-#: FMoviePlayer.form:131
+#: FMoviePlayer.form:131 FmoviePlayerToggleBUTTONS.form:127
 msgid "stop the movie"
 msgstr ""
 
-#: FMoviePlayer.form:138
+#: FMoviePlayer.form:138 FmoviePlayerToggleBUTTONS.form:134
 msgid "Camera:    "
 msgstr ""
 
-#: FMoviePlayer.form:147 Form1.form:158
+#: FMoviePlayer.form:147 FmoviePlayerToggleBUTTONS.form:143 Form1.form:158
 msgid "webcam device"
 msgstr ""
 
-#: FMoviePlayer.form:148 Form1.form:159
+#: FMoviePlayer.form:148 FmoviePlayerToggleBUTTONS.form:144 Form1.form:159
 msgid "/dev/video0"
 msgstr ""
 
-#: FMoviePlayer.form:148 Form1.form:159
+#: FMoviePlayer.form:148 FmoviePlayerToggleBUTTONS.form:144 Form1.form:159
 msgid "/dev/video1"
 msgstr ""
 
-#: FMoviePlayer.form:148 Form1.form:159
+#: FMoviePlayer.form:148 FmoviePlayerToggleBUTTONS.form:144 Form1.form:159
 msgid "/dev/video2"
 msgstr ""
 

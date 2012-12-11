@@ -1,5 +1,7 @@
 ' Gambas class file
 
+' Gambas class file
+
 Public recps As Process
 Public playps As Process
 Private isplaying As Boolean = False
@@ -59,27 +61,19 @@ Public Sub relaxRuttonsAndSetSpeed(s As Float)
   Dim t As ToggleButton 
    For Each t In [btnPlayQuarter, btnPlayHalf, btnPlay, btnPlay2x, btnPlay4x]
     If Mouse.Inside(t) Then 
-       If Not existingPlayer Then 
+      't.Value = Not 
+       If t.Value And Not existingPlayer Then 
           Print "WRONG CALL of relaxRuttonsAndSetSpeed pressed and activated: " & t.Name
+          t.Value = False
           isplaying = False
-          Continue
-       Endif
+       Endif 
        
-       If (s == playspeed) Then
- 'there is NO need to change speed
-           Print "toggle pause/resume"
-           If (isplaying) Then
-              Print "now in pause"
-              Print #playps, " ";
-              isplaying = False
-           Else
-              Print "now resume"
-              Print #playps, " ";
-              isplaying = True
-           Endif
-        Else
-        Print "changing the speed for x" & CStr(s)
-       
+       If t.Value Then 
+  '    
+        Print "set playing at x" & CStr(s)
+        
+        If Not (s == playspeed) Then
+
           If (s == 0.25) And (playspeed > 0.3) Then Print #playps, "{";
           If (s == 0.25) And (playspeed > 0.9) Then Print #playps, "{";
           If (s == 0.25) And (playspeed > 1.9) Then Print #playps, "{";
@@ -104,23 +98,28 @@ Public Sub relaxRuttonsAndSetSpeed(s As Float)
           If (s == 4) And (playspeed < 0.6) Then Print #playps, "}";
           If (s == 4) And (playspeed < 1.2) Then Print #playps, "}";
           If (s == 4) And (playspeed < 2.2) Then Print #playps, "}";
-          
-          If (isplaying) Then Print "let it play"
-          If (Not isplaying) And existingPlayer And (s > playspeed) Then
-              Print "still playing"
-              isplaying = True
+
+          If (s < playspeed) And Not isplaying Then
+              Print #playps, " ";
+          Else
+             isplaying = True
           Endif
-          If (Not isplaying) And existingPlayer And (s < playspeed) Then
-              'Print "now resume"
-              'Print #playps, " ";
-              Print "still playing"
-              isplaying = True
-          Endif
-          
-      Endif ' change of speed
       
+      'end if there is a need to change speed
+       Else 
+            Print "in pause"
+            Print #playps, " ";
+            isplaying = False
+        Endif
+
+      Else
+         Print "in pause"
+         Print #playps, " ";
+         isplaying = False
+      Endif
       
     Else 'mouse not on the control      
+      t.Value = False
     Endif 
   Next 
    
@@ -149,7 +148,7 @@ Public Sub runMPlayer(mp4 As String, speed As Float)
   
   If Len(mp4) <= 0 Then Return
   
-  dimPlayVideo = getDim(mp4)
+  dimPlayVideo = getDimLength(mp4)
   
   dwgMoviePlayer.Show
     Form_Resize
@@ -157,12 +156,11 @@ Public Sub runMPlayer(mp4 As String, speed As Float)
   '  '.Mouse = Mouse.Default
   '  Form_Resize
   '  '.Enabled = FALSE
-  Try playps.kill
-  
+
   $bShow = True
  
   'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"
-  '  
+  '
   playps = Shell "mplayer -identify -wid " & CStr(dwgMoviePlayer.Handle) & " -speed " & CStr(speed) & " " & Conv$(mp4, Desktop.Charset, System.Charset) For Read Write As "Process"
   existingPlayer = True
 
@@ -181,17 +179,13 @@ Public Sub Process_Read()
   Dim sData As String  
   Dim s As String  
   Dim ar As String[]
-  Dim f As Float 
   Dim i As Integer
+  sData = Read #Last, -255
   
-  Read #Last, sData, Lof(Last)
-
-'  sData = Read #Last, -255
-  If isrecording Then Print "is still recording ????"
   If isrecording Then Return
   'Print sdata
   s = Trim(sData)
-  
+
   i = InStr(s, "A: ")
   If i > 0 Then 
     ar = Split(Mid(s, i), "\n", "", True)   
@@ -202,40 +196,17 @@ Public Sub Process_Read()
     If CURFRAME > sbFrames.MaxValue Then sbFrames.MaxValue = CURFRAME
     sbFrames.Value = CURFRAME
     txtcmd.Text = ar[3]
-    f = 0
-    Try f = CFloat(Trim(ar[5]))
-    If Abs(f) > 1 Then
-      Print s
-      txtcmd.Background = Color.Gray
-    Endif
-'    Print ar[3]
-  Else ' not a string of status
-
-    i = InStr(s, "VIDEO_FPS=")
-    If i > 0 Then 
-      ar = Split(Mid(s, i), "\n", "", True)   
-      ar = Split(ar[0], "=", "", True, False)
-      Try VIDEO_FPS = CFloat(Trim(ar[1]))
-    Endif
-    i = InStr(s, "ID_LENGTH=")
-    If i > 0 Then 
-      ar = Split(Mid(s, i), "\n", "", True)   
-      ar = Split(ar[0], "=", "", True, False)
-      Try ID_LENGTH = CFloat(Trim(ar[1]))
-      sbFrames.MaxValue = CInt(ID_LENGTH * VIDEO_FPS)
-      CURFRAME = 0
-      sbFrames.Value = 0
-      sbFrames.MinValue = 0
-    Endif
-    'If InStr(s, "ID_") > 0 Then Print s
+    Print ar[3]
+  Else
+    Print s
   Endif
 End
 
 
 Public Sub Process_Kill()
-  playps.Drop()
-  playps.Close()
-  
+  Dim t As ToggleButton 
+  existingPlayer = False
+
   timShow.Enabled = False
   $bQuit = False
   $bShow = False
@@ -244,19 +215,19 @@ Public Sub Process_Kill()
   Print "STOPPING PLAYER****************"
   playspeed = 1
   isplaying = False
-  existingPlayer = False
+
+   For Each t In [btnPlay, btnPlay2x, btnPlay4x, btnPlayHalf, btnPlayQuarter]
+      t.Value = False
+   Next 
+
 End
 
 
 Public Sub StopMovie()
-  Dim m As String
+
   If Not existingPlayer Then Return
+  Print #playps, "q";
   
-  btnPlay.Background = Color.Yellow
-  Try Print #playps, "q";
-  If Error Then
-    Try playps.Kill
-  Endif
   'Try playps.Kill
   
   'Try playps.Kill
@@ -265,10 +236,7 @@ Public Sub StopMovie()
     Print ".";
   '  Try playps.Kill
   Wend
-  Print "playps is 0stop unrun 2crash" & playps.State
-  Shell "ps -f " & playps.Id To m
-  Print m
-  btnPlay.Background = Color.Black
+  Print
 
 End
 
@@ -280,7 +248,7 @@ End
 
 
 Public Sub btnOpen_Click()
-
+' Dim t As ToggleButton
   Dialog.Title = "Choose a video"
   Dialog.Filter = ["*.mp4", "mp4 Video", "*", "All files"]
   Dialog.Path = recfile
@@ -289,12 +257,20 @@ Public Sub btnOpen_Click()
   If isrecording Then Stoprecording()  
   If existingPlayer Then StopMovie()
 '  Wait 0.2
+  'processkill WILL unpress the toggle buttons
   recfile = Dialog.Path  
   runMPlayer(recfile, 1)
+  ' i cannot press a button so : make a pause
+  'Print #playps, " ";
  
-  'movemouseto(btnPlay)
-  'btnPlay_Click()
+  movemouseto(btnPlay)
+  btnPlay_Click()
 
+  'NOT WORKING
+  'pressPlay.start
+  'For Each t In [btnPlay, btnPlay2x, btnPlay4x]
+  '    t.Value = True
+  'Next 
 End
 
 
@@ -347,6 +323,8 @@ Public Sub dwgMoviePlayer_MouseDown()
  ' Dim t As ToggleButton
   Dim f As Float
   If Not existingPlayer Then Return
+
+''''''''''''' can't set the toggle button-> disable resuming
   
 '  If (Mouse.x - (dwgMoviePlayer.W / 2)) < 0 Then Return
 
@@ -366,11 +344,11 @@ Public Sub dwgMoviePlayer_MouseDown()
 '  If playspeed > 3.9 Then Mouse.Move(btnPlay4x.x, btnPlay4x.y)
 
 If isplaying Then
-  'If playspeed < 0.3 Then btnPlayQuarter.Value = Not btnPlayQuarter.Value
-  'If playspeed == 0.5 Then btnPlayHalf.Value = Not btnPlayHalf.Value
-  'If playspeed == 1 Then btnPlay.Value = Not btnPlay.Value
-  'If playspeed == 2 Then btnPlay2x.Value = Not btnPlay2x.Value
-  'If playspeed > 3.9 Then btnPlay4x.Value = Not btnPlay4x.Value
+  If playspeed < 0.3 Then btnPlayQuarter.Value = Not btnPlayQuarter.Value
+  If playspeed == 0.5 Then btnPlayHalf.Value = Not btnPlayHalf.Value
+  If playspeed == 1 Then btnPlay.Value = Not btnPlay.Value
+  If playspeed == 2 Then btnPlay2x.Value = Not btnPlay2x.Value
+  If playspeed > 3.9 Then btnPlay4x.Value = Not btnPlay4x.Value
   
   If (playspeed < 0.3) Then Print #playps, "}";
   If (playspeed < 0.6) Then Print #playps, "}";
@@ -461,6 +439,8 @@ Public Sub btnKill_Click()
 End
 
 Public Sub txtcmd_KeyPress()
+  Dim d As Float = 0.0 ' 3
+
 
   If 0 >= InStr(" srpqhf", Lower(key.text)) Then Return
   Print "pressed " & Key.Text
@@ -633,11 +613,13 @@ End
 Public Sub getPanButtonHeight() As Integer
 Return panButton.H
 End
-Private Sub getDim(f As String) As Integer[]
+Private Sub getDimLength(f As String) As Integer[]
   Dim m As String
   Dim n As String
   Dim ar As String[]
+  Dim br As String[]
   Dim ret As Integer[]
+  Dim i As Integer
   'Dim mp As Process
   Shell "file " & f To m
   'Print m
@@ -683,3 +665,4 @@ Private Sub getDim(f As String) As Integer[]
 
   Return dimRecVideo
 End
+

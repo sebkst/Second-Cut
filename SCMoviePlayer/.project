@@ -1,9 +1,9 @@
 # Gambas Project File 3.0
 # Compiled with Gambas 3.3.4
 Title=Second Cut MP
-Startup=FMoviePlayer
+Startup=Main
 Icon=logo.png
-Version=3.1.4
+Version=3.1.9
 Component=gb.image
 Component=gb.qt4
 Component=gb.form
@@ -13,7 +13,7 @@ Environment="GB_GUI=gb.qt4"
 TabSize=2
 Translate=1
 Language=fr
-ExecPath=/home/seb/Téléchargements/FL/sydneysabre/Second-Cut/bin/SecondCut3.1.3.gambas
+ExecPath=/home/seb/Téléchargements/FL/sydneysabre/Second-Cut/bin/SecondCutguvcview3.1.8.gambas
 SourcePath=/home/seb/Téléchargements/FL/sydneysabre/Second-Cut
 Maintainer=benoit
 Vendor=Princeton

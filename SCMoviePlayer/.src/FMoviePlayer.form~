@@ -71,9 +71,8 @@
           Text = ("4x")
           Picture = Picture["icon:/huge/play"]
         }
-        { !btnRec Button
+        { btnRec Button
           MoveScaled(73,0,7,7)
-          #Public = True
           Enabled = False
           Background = &H000000&
           Foreground = &HFFFFFF&

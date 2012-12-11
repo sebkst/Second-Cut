@@ -1,0 +1,84 @@
+' Gambas class file
+
+Inherits FMoviePlayer
+
+'use playps too.
+
+Public Sub _new()
+  Dim m As String
+  Shell "which mencoder" To m
+  If Len(m) <= 7 Then Message.Error("Error : MEncoder was not found.\nPlease install MEncoder to use this software.\nsudo apt-get install mencoder", "Exit")
+  If Len(m) <= 7 Then Quit 
+  Me.enableBtnRec(True)
+    
+End 
+
+Public Sub btnRec_Click()
+  
+  'Message.Info("Hello", "OK")
+  If Me.existingPlayer Then Me.StopMovie()
+  If Me.isrecording Then
+     Me.StopRecording()
+     Return
+  Else
+    If InStr(Application.Env["_"], "bin/gambas3") > 0 Then Me.recfile = "/dev/shm/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+    If InStr(Application.Env["_"], "bin/gambas3") <= 0 Then Me.recfile = Application.path & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+    Print "start recording into " & Me.recfile
+    If Len(Me.getcbVideoDeviceText()) > 0 Then
+      Me.videodevice = Me.getcbVideoDeviceText()
+    Endif
+    startRecording(Me.recfile)
+  Endif
+End
+
+
+Public Sub startRecording(mp4 As String)
+  Dim r As String
+  Dim recpscmd As String[]
+  
+  If Len(mp4) <= 0 Then Return
+  Me.oldme = []
+  '[Me.ScreenX, Me.ScreenY, Me.W, Me.H]
+
+'  Me.hideDwgMoviePlayer()
+'  Me.Move(0, Screen.AvailableHeight - Me.ClientY - 3 * Me.getPanButtonHeight() / 2, Screen.AvailableWidth, Me.ClientY + Me.getPanButtonHeight())
+  Me.$bShow = True
+'  Me.Stacking = Window.Above
+  
+  'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"
+
+
+     recpscmd = ["mencoder", "tv://", "-tv", "PARAMS", "-nosound", "-ovc", "lavc", "-o", Conv$(mp4, Desktop.Charset, System.Charset)]
+    recpscmd[3] = "driver=v4l2:width=" & CStr(Me.dimrecvideo[0]) & ":height=" & CStr(Me.dimrecvideo[1]) & ":device=" & Me.videodevice
+
+'  Me.recps = Shell r For Read Write As "RecProcess"
+  Me.recps = Exec recpscmd For Read Write As "RecProcess"
+  'dwgMoviePlayer.Hide
+  'timShow.Enabled = True
+  Me.setTxtcmdText("")
+  Me.isrecording = True 
+ 
+  While True
+        Shell "ls -1 -s " & Quote(Me.recfile) & " | cut -d' ' -f1 " To r
+        r = Trim(r)
+        Sleep 0.3
+        If Len(r) > 0 Then
+          Print r & " ";
+          If CInt(r) > 99 Then Break
+        Endif
+      Wend
+ 
+      Me.runMPlayer(Me.recfile, 1)
+  
+End
+Public Sub recProcess_Kill()
+  Print "Stop Recording"
+  Me.isrecording = False   
+End
+
+Public Sub recProcess_Read()
+    Dim sData As String  
+    sData = Read #Last, -255
+    'Print sData
+End
+

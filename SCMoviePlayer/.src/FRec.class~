@@ -1,0 +1,75 @@
+' Gambas class file
+
+Inherits FMoviePlayer
+
+Public Sub _new()
+  Dim m As String
+  Shell "which guvcview" To m
+  If Len(m) <= 7 Then Message.Error("Error : MPlayer was not found.\nPlease install mplayer to use this software.\nsudo apt-get install mplayer", "Exit")
+  If Len(m) <= 7 Then Quit 
+  Me.enableBtnRec(True)
+  
+  For Each m In args
+    Print m
+  Next
+  Print "----------"
+  For Each m In Application.Env
+    Print m & " ";
+    Print Application.Env[m]    
+  Next
+  
+End 
+
+Public Sub btnRec_Click()
+  
+  'Message.Info("Hello", "OK")
+  If Me.playps Then Me.StopMovie()
+  If isrecoding Then
+     Me.StopRecord()
+     Return
+  Else
+    If InStr(Application.Env["_"], "bin/gambas3") > 0 Then Me.recfile = "/dev/shm/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+    If InStr(Application.Env["_"], "bin/gambas3") <= 0 Then Me.recfile = Application.path & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+    Print "start recording into " & Me.recfile
+    If Len(Me.getcbVideoDeviceText()) > 0 Then
+      Me.videodevice = Me.getcbVideoDeviceText()
+    Endif
+    startRecording(Me.recfile)
+  Endif
+End
+
+
+Public Sub startRecording(mp4 As String)
+  Dim r As String
+  If Len(mp4) <= 0 Then Return
+  Me.oldme = [Me.ScreenX, Me.ScreenY, Me.W, Me.H]
+
+  Me.hideDwgMoviePlayer()
+  Me.Move(0, Screen.AvailableHeight - Me.ClientY - 3 * Me.getPanButtonHeight() / 2, Screen.AvailableWidth, Me.ClientY + Me.getPanButtonHeight())
+  Me.$bShow = True
+  Me.Stacking = Window.Above
+  
+  'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"
+  '
+  r = "guvcview --device=" & Me.videodevice & " --size=" & CStr(Me.dimRecVideo[0]) & "x" & CStr(Me.dimRecVideo[1])
+  r = r & " --video=" & Conv$(mp4, Desktop.Charset, System.Charset) ' & " --exit_on_close"
+  Print r 
+'  Me.recps = Shell r For Read Write As "RecProcess"
+  Me.recps = Exec Split(r, " ") For Read Write As "RecProcess"
+  'dwgMoviePlayer.Hide
+  'timShow.Enabled = True
+  Me.setTxtcmdText("")
+  Me.isrecoding = True 
+  
+End
+Public Sub recProcess_Kill()
+  Print "Stop Recording"
+  Me.isrecoding = False   
+End
+
+Public Sub recProcess_Read()
+    Dim sData As String  
+    sData = Read #Last, -255
+    Print sData
+End
+

@@ -252,10 +252,9 @@ Public Sub StopMovie()
   Dim m As String
   If Not existingPlayer Then Return
   
-  btnPlay.Background = Color.Yellow
   Try Print #playps, "q";
   If Error Then
-    Try playps.Kill
+    Try Shell "ls" Wait
   Endif
   'Try playps.Kill
   
@@ -268,8 +267,6 @@ Public Sub StopMovie()
   Print "playps is 0stop unrun 2crash" & playps.State
   Shell "ps -f " & playps.Id To m
   Print m
-  btnPlay.Background = Color.Black
-
 End
 
 

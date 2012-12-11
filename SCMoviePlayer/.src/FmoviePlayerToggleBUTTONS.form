@@ -1,19 +1,15 @@
 # Gambas Form File 3.0
 
 { Form Form
-  MoveScaled(33.1429,15,104,55)
-  Foreground = &HFFFFFF&
-  Text = ("Second Cut Movie player")
-  Icon = Picture["logo.png"]
-  Picture = Picture["centre.png"]
+  MoveScaled(0,0,94,64)
   { TxtAbout Label
-    MoveScaled(1,1,101,37)
+    MoveScaled(1,0,101,37)
     Text = ("This is a test version.\nThe scrolbar is disabled. It just indicates the current position read in the movie.\nLogic of pressing a button :\nIf no movie is playing, it plays the movie at the button' speed (normal, half or quarter).\nIf a movie is playing but at a different speed, then it changes the speed.\nIf a movie is playing at the very same speed of the button, then it will make it pause.  \n\nactive keys : s r p q h f  \nalso active in capital letters\ns : stops the video (pause)\nRecord button is disabed. (so nothing happens when you press 'R' or 'r')\np: Replay Last video at normal speed (same as press play button)\nh: Replay Last video at half speed (same as press 0.5x play button)\nq: Replay Last video at quarter speed (same as press 0.25 play button)\nf: Replay Last video frame by frame\n\nother mode :  to view frame by frame, clic with left button inside the video image.\nKeep the left button pressed will activate a frame by frame automatic replay.\nWhen you release the mouse button, the movie will be paused (auto refresh stops).\nThe frame refresh frequency is determined by the horizontal distance between\n the mouse cursor and the center of the video frame.\nMeaning if you press in the center of the frame, the frames wil refresh very slowly.\nIf you press near the right border, or next to the left side of the frame,\nthen the frame will refresh very quickly, close to normal speed.\nTo modify te speed, just drag the mouse cursor closer to the center\n or to the edges (move while keeping the left button pressed).")
     Alignment = Align.Left
     Border = Border.Sunken
   }
   { panButton Panel
-    MoveScaled(0,38,82,16)
+    MoveScaled(0,37,82,16)
     { VBox1 VBox
       MoveScaled(0,0,82,16)
       { sbFrames ScrollBar
@@ -112,21 +108,21 @@
     }
   }
   { dwgMoviePlayer DrawingArea
-    MoveScaled(29,15,9,5)
+    MoveScaled(29,14,9,5)
     Visible = False
     Enabled = False
     Background = &H000000&
     Focus = True
   }
   { timShow #Timer
-    #MoveScaled(36,11)
+    #MoveScaled(36,10)
     Delay = 500
   }
   { Timframes #Timer
-    #MoveScaled(12,38)
+    #MoveScaled(12,37)
   }
   { moveMouseBack #Timer
-    #MoveScaled(5,50)
+    #MoveScaled(5,49)
     Delay = 90
   }
 }
