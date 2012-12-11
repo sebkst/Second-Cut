@@ -11,8 +11,12 @@
 
 Public Sub Main()
   Dim f As FRecGuvcview = New FRecGuvcview
+  
+  
+  
   f.Show  
   Print CInt(Now)
+  
   'Dim g As FRecMEncoder = New FRecMEncoder
   'g.Show  
 End

@@ -16,7 +16,7 @@ Public dimRecVideo As Integer[] = [1280, 720]
 'todo to add in rec params
 Const recFPS As Integer = 30
 Private VIDEO_FPS As Float
-Private ID_LENGTH As Float
+'Private ID_LENGTH As Float
 Private CURFRAME As Integer
 
 
@@ -439,7 +439,7 @@ Public Sub btnKill_Click()
 End
 
 Public Sub txtcmd_KeyPress()
-  Dim d As Float = 0.0 ' 3
+'  Dim d As Float = 0.0 ' 3
 
 
   If 0 >= InStr(" srpqhf", Lower(key.text)) Then Return
@@ -617,10 +617,7 @@ Private Sub getDimLength(f As String) As Integer[]
   Dim m As String
   Dim n As String
   Dim ar As String[]
-  Dim br As String[]
   Dim ret As Integer[]
-  Dim i As Integer
-  'Dim mp As Process
   Shell "file " & f To m
   'Print m
   If InStr(Trim(m), " x ") > 0 Then

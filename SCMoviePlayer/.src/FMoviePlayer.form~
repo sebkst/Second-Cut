@@ -14,6 +14,7 @@
   }
   { panButton Panel
     MoveScaled(0,38,82,16)
+    AutoResize = True
     { VBox1 VBox
       MoveScaled(0,0,82,16)
       { sbFrames ScrollBar
@@ -71,8 +72,9 @@
           Text = ("4x")
           Picture = Picture["icon:/huge/play"]
         }
-        { btnRec Button
+        { !btnRec Button
           MoveScaled(73,0,7,7)
+          #Public = True
           Enabled = False
           Background = &H000000&
           Foreground = &HFFFFFF&

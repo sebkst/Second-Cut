@@ -10,14 +10,14 @@ Public Sub _new()
   Me.enableBtnRec(True)
   Return
   
-  For Each m In args
-    Print m
-  Next
-  Print "----------"
-  For Each m In Application.Env
-    Print m & " ";
-    Print Application.Env[m]    
-  Next
+  ' For Each m In args
+  '   Print m
+  ' Next
+  ' Print "----------"
+  ' For Each m In Application.Env
+  '   Print m & " ";
+  '   Print Application.Env[m]    
+  ' Next
   
 End 
 
@@ -28,8 +28,15 @@ Public Sub btnRec_Click()
   If Me.isrecording Then
        Me.StopRecording()
   Else
-    If InStr(Application.Env["_"], "bin/gambas3") > 0 Then Me.recfile = "/dev/shm/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
-    If InStr(Application.Env["_"], "bin/gambas3") <= 0 Then Me.recfile = Application.path & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+'    If InStr(Application.Env["_"], "bin/gambas3") > 0 Then Me.recfile = "/dev/shm/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+'    If InStr(Application.Env["_"], "bin/gambas3") <= 0 Then 
+    
+    If Exist(User.Home & "/desktop") Then
+      Me.recfile = User.Home & "/desktop/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+    Else
+      Me.recfile = User.Home & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+      If Exist(User.Home & "/video") Then Me.recfile = User.Home & "/video/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4" 
+    Endif
     Print "start recording into " & Me.recfile
     If Len(Me.getcbVideoDeviceText()) > 0 Then
       Me.videodevice = Me.getcbVideoDeviceText()
@@ -45,7 +52,7 @@ Public Sub startRecording(mp4 As String)
   Me.oldme = [Me.ScreenX, Me.ScreenY, Me.W, Me.H]
 
   Me.hideDwgMoviePlayer()
-  Me.Move(0, Screen.AvailableHeight - Me.ClientY - 3 * Me.getPanButtonHeight() / 2, Screen.AvailableWidth, Me.ClientY + Me.getPanButtonHeight())
+  Me.Move(0, Screen.AvailableHeight - 50, Screen.AvailableWidth, 50)
   Me.$bShow = True
   Me.Stacking = Window.Above
   
@@ -62,6 +69,8 @@ Public Sub startRecording(mp4 As String)
   Me.isrecording = True 
   
 End
+
+
 Public Sub recProcess_Kill()
   Print "Stop Recording******************************"
   Me.isrecording = False   

@@ -39,8 +39,12 @@ Public Sub Form_Resize()
   Dim dr As Float
 
 '  panButton.Resize(Me.CLientW, btnOpen.h + cbVideoDevice.H)
-  panButton.Move(0, Me.CLientH - panButton.H, Me.CLientW)
-
+  If (sbFrames.Visible And HBox2.Visible) Then 
+    panButton.Move(0, Me.CLientH - panButton.H, Me.CLientW, VBox1.H)
+  Else
+    panButton.Move(0, 0, Me.CLientW, VBox1.H)
+  Endif
+    
   If dwgMoviePlayer.Visible Then
     dwgMoviePlayer.Move(0, 0, Me.ClientW - 0, Me.ClientH - panButton.H - 0)
     dr = dwgMoviePlayer.w / dwgMoviePlayer.h
@@ -433,18 +437,22 @@ Public Sub btnPlayQuarter_Click()
 End
 
 Public Sub panButton_Arrange()
-  VBox1.h = 49 + 35 + sbFrames.H
+  VBox1.h = 49
+  If (sbFrames.Visible) Then VBox1.h = VBox1.H + sbFrames.H
+  If (HBox2.Visible) Then VBox1.h = VBox1.H + HBox2.H
   VBox1.w = panButton.w
   HBox1.w = panButton.w
-  HBox2.w = panButton.w  
-  sbFrames.w = panButton.W
+  If (HBox2.Visible) Then HBox2.w = panButton.w  
+  If (sbFrames.Visible) Then sbFrames.w = panButton.W
   HBox1.h = 49
-  HBox2.h = 35  
-  
-  txtcmd.W = panButton.W / 4
-  btnKill.W = panButton.W / 4
-  Labelvd.W = panButton.W / 4
-  cbVideoDevice.W = panButton.W / 4
+  If (HBox2.Visible) Then
+    HBox2.h = 35  
+    txtcmd.W = panButton.W / 4
+    btnKill.W = panButton.W / 4
+    Labelvd.W = panButton.W / 4
+    cbVideoDevice.W = panButton.W / 4
+  Endif
+   
   btnOpen.W = panButton.W / 7
   btnPlayHalf.W = panButton.W / 7 
   btnPlayQuarter.W = panButton.W / 7
@@ -528,10 +536,12 @@ Public Sub Stoprecording()
   '  Try recps.Kill
   '  If Not Error Then Print ".";
   'Wend 
-  
+  Me.Border = True
   Me.Stacking = Window.Normal
   Try i = oldme.Count
   If i >= 4 Then Me.move(oldme[0], oldme[1], oldme[2], oldme[3])
+  sbFrames.Show
+  HBox2.Show
   Shell "ls -sh " & recfile To m
   Print "recorded :  " & m
   
@@ -625,10 +635,14 @@ Public Sub setTxtcmdText(t As String)
   txtcmd.Text = t
 End
 Public Sub hideDwgMoviePlayer()
+  Me.Border = False
+  sbFrames.hide
+  HBox2.Hide
   dwgMoviePlayer.Hide
   dwgMoviePlayer.Enabled = False
   dwgMoviePlayer.Resize(1, 1)
   txtAbout.Hide
+  btnRec.Background = Color.Gray
 End
 Public Sub getPanButtonHeight() As Integer
 Return panButton.H
