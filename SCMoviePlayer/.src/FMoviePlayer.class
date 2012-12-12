@@ -54,8 +54,9 @@ Public Sub Form_Resize()
     Else 'width fixed
       dwgMoviePlayer.h = dwgMoviePlayer.w / rr    
     Endif
-    If txtAbout.Visible Then txtAbout.Move(4, 4, Me.ClientW - 8, dwgMoviePlayer.H - 8)
   Endif
+  If txtAbout.Visible Then txtAbout.Move(4, 4, Me.ClientW - 8, Me.ClientH - panButton.H - 8)
+
 End
 
 
@@ -474,7 +475,9 @@ Public Sub txtcmd_KeyPress()
   Print "pressed " & Key.Text
 
  ' R: Record
-
+  If "r" == Lower(Key.Text) Then 
+    Me.btnRec_Click()
+  Endif
  ' S: Stop
   If existingPlayer And Not isrecording Then
     If "s" == Lower(Key.Text) Then Try Print #playps, "p";
@@ -511,8 +514,6 @@ Public Sub txtcmd_KeyPress()
 End
 
 Public Sub Stoprecording()
-  Dim m As String
-  Dim i As Integer = 0
   If Not isrecording Then Print "stop what ? I am not recording"
   
   If existingPlayer Then StopMovie() 
@@ -527,7 +528,16 @@ Public Sub Stoprecording()
     Print ".";
   Wend
   Print "\nend of recording"
-  btnRec.Background = Color.Black
+
+  
+End
+
+Public Sub afterStopRecording()
+  
+  Dim m As String
+  Dim i As Integer = 0
+
+    btnRec.Background = Color.Black
 '  Try recps.Kill
 '  Wait 5
 '  Try recps.Kill
@@ -539,12 +549,11 @@ Public Sub Stoprecording()
   Me.Border = True
   Me.Stacking = Window.Normal
   Try i = oldme.Count
-  If i >= 4 Then Me.move(oldme[0], oldme[1], oldme[2], oldme[3])
+  If i >= 4 Then Try Me.move(oldme[0], oldme[1], oldme[2], oldme[3])
   sbFrames.Show
   HBox2.Show
   Shell "ls -sh " & recfile To m
-  Print "recorded :  " & m
-  
+  Print "recorded :  " & m  
 End
 
 
@@ -619,6 +628,10 @@ Public Sub btnPlayQuarter_KeyRelease()
   txtcmd_KeyPress()
   txtcmd.Text &= Key.Text
 End
+Public Sub btnRec_Click()  
+Print "rec"
+End
+
 Public Sub btnRec_KeyRelease()
   If 0 >= InStr(" srpqhf", Lower(key.text)) Then Return
   txtcmd_KeyPress()
@@ -634,7 +647,7 @@ End
 Public Sub setTxtcmdText(t As String)
   txtcmd.Text = t
 End
-Public Sub hideDwgMoviePlayer()
+Public Sub hideDwgMoviePlayerForRecording()
   Me.Border = False
   sbFrames.hide
   HBox2.Hide

@@ -16,7 +16,7 @@ End
 Public Sub btnRec_Click()
   
   'Message.Info("Hello", "OK")
-  If Me.playps Then Me.StopMovie()
+  If Me.existingPlayer Then Me.StopMovie()
   If Me.isrecording Then
      Me.StopRecording()
      Return

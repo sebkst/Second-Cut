@@ -27,11 +27,11 @@ msgstr ""
 msgid "Second Cut Movie player"
 msgstr ""
 
-#: FMoviePlayer.form:35 FmoviePlayerToggleBUTTONS.form:31
+#: FMoviePlayer.form:35
 msgid ""
 "This is a test version.\n"
-"The scrolbar is disabled. It just indicates the current position read in the "
-"movie.\n"
+"The scrolbar is disabled. It just indicates the current position/time of the "
+"replay process.\n"
 "Logic of pressing a button :\n"
 "If no movie is playing, it plays the movie at the button' speed (normal, "
 "half or quarter).\n"
@@ -42,7 +42,8 @@ msgid ""
 "active keys : s r p q h f  \n"
 "also active in capital letters\n"
 "s : stops the video (pause)\n"
-"Record button is disabed. (so nothing happens when you press 'R' or 'r')\n"
+"r: Record and show the video feed. to stop recording : CLICK on the record "
+"button and wait for the GUI to take bake its previous shape.\n"
 "p: Replay Last video at normal speed (same as press play button)\n"
 "h: Replay Last video at half speed (same as press 0.5x play button)\n"
 "q: Replay Last video at quarter speed (same as press 0.25 play button)\n"
@@ -109,20 +110,58 @@ msgstr ""
 msgid "Camera:    "
 msgstr ""
 
-#: FMoviePlayer.form:147 FmoviePlayerToggleBUTTONS.form:143 Form1.form:158
+#: FMoviePlayer.form:146 FmoviePlayerToggleBUTTONS.form:143 Form1.form:158
 msgid "webcam device"
 msgstr ""
 
-#: FMoviePlayer.form:148 FmoviePlayerToggleBUTTONS.form:144 Form1.form:159
+#: FMoviePlayer.form:147 FmoviePlayerToggleBUTTONS.form:144 Form1.form:159
 msgid "/dev/video0"
 msgstr ""
 
-#: FMoviePlayer.form:148 FmoviePlayerToggleBUTTONS.form:144 Form1.form:159
+#: FMoviePlayer.form:147 FmoviePlayerToggleBUTTONS.form:144 Form1.form:159
 msgid "/dev/video1"
 msgstr ""
 
-#: FMoviePlayer.form:148 FmoviePlayerToggleBUTTONS.form:144 Form1.form:159
+#: FMoviePlayer.form:147 FmoviePlayerToggleBUTTONS.form:144 Form1.form:159
 msgid "/dev/video2"
+msgstr ""
+
+#: FmoviePlayerToggleBUTTONS.form:31
+msgid ""
+"This is a test version.\n"
+"The scrolbar is disabled. It just indicates the current position read in the "
+"movie.\n"
+"Logic of pressing a button :\n"
+"If no movie is playing, it plays the movie at the button' speed (normal, "
+"half or quarter).\n"
+"If a movie is playing but at a different speed, then it changes the speed.\n"
+"If a movie is playing at the very same speed of the button, then it will "
+"make it pause.  \n"
+"\n"
+"active keys : s r p q h f  \n"
+"also active in capital letters\n"
+"s : stops the video (pause)\n"
+"Record button is disabed. (so nothing happens when you press 'R' or 'r')\n"
+"p: Replay Last video at normal speed (same as press play button)\n"
+"h: Replay Last video at half speed (same as press 0.5x play button)\n"
+"q: Replay Last video at quarter speed (same as press 0.25 play button)\n"
+"f: Replay Last video frame by frame\n"
+"\n"
+"other mode :  to view frame by frame, clic with left button inside the video "
+"image.\n"
+"Keep the left button pressed will activate a frame by frame automatic "
+"replay.\n"
+"When you release the mouse button, the movie will be paused (auto refresh "
+"stops).\n"
+"The frame refresh frequency is determined by the horizontal distance "
+"between\n"
+" the mouse cursor and the center of the video frame.\n"
+"Meaning if you press in the center of the frame, the frames wil refresh very "
+"slowly.\n"
+"If you press near the right border, or next to the left side of the frame,\n"
+"then the frame will refresh very quickly, close to normal speed.\n"
+"To modify te speed, just drag the mouse cursor closer to the center\n"
+" or to the edges (move while keeping the left button pressed)."
 msgstr ""
 
 #: Form1.form:49

@@ -12,11 +12,19 @@
 Public Sub Main()
   Dim f As FRecGuvcview = New FRecGuvcview
   
-  
+  Dim d As Window
+  Dim dd As DirChooser
+  Dim db As Button
   
   f.Show  
   Print CInt(Now)
   
+  d = New Window
+  d.Move(0, 0, 500, 500)
+  dd = New DirChooser(d)
+  dd.Resize(d.ClientW, d.ClientH)
+  dd.Show
+  d.show
   'Dim g As FRecMEncoder = New FRecMEncoder
   'g.Show  
 End

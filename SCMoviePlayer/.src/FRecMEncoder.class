@@ -40,7 +40,7 @@ Public Sub startRecording(mp4 As String)
   Me.oldme = []
   '[Me.ScreenX, Me.ScreenY, Me.W, Me.H]
 
-'  Me.hideDwgMoviePlayer()
+'  Me.hideDwgMoviePlayerForRecording()
 '  Me.Move(0, Screen.AvailableHeight - Me.ClientY - 3 * Me.getPanButtonHeight() / 2, Screen.AvailableWidth, Me.ClientY + Me.getPanButtonHeight())
   Me.$bShow = True
 '  Me.Stacking = Window.Above

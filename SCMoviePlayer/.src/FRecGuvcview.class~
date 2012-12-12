@@ -30,12 +30,15 @@ Public Sub btnRec_Click()
   Else
 '    If InStr(Application.Env["_"], "bin/gambas3") > 0 Then Me.recfile = "/dev/shm/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
 '    If InStr(Application.Env["_"], "bin/gambas3") <= 0 Then 
-    
-    If Exist(User.Home & "/desktop") Then
-      Me.recfile = User.Home & "/desktop/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+    If Len(Application.Args[1]) > 0 And Exist(Application.Args[1]) Then
+      Me.recfile = Application.Args[1] & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
     Else
+     If Exist(User.Home & "/desktop") Then
+      Me.recfile = User.Home & "/desktop/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+     Else
       Me.recfile = User.Home & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
       If Exist(User.Home & "/video") Then Me.recfile = User.Home & "/video/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4" 
+     Endif
     Endif
     Print "start recording into " & Me.recfile
     If Len(Me.getcbVideoDeviceText()) > 0 Then
@@ -51,7 +54,7 @@ Public Sub startRecording(mp4 As String)
   If Len(mp4) <= 0 Then Return
   Me.oldme = [Me.ScreenX, Me.ScreenY, Me.W, Me.H]
 
-  Me.hideDwgMoviePlayer()
+  Me.hideDwgMoviePlayerForRecording()
   Me.Move(0, Screen.AvailableHeight - 50, Screen.AvailableWidth, 50)
   Me.$bShow = True
   Me.Stacking = Window.Above
@@ -67,18 +70,6 @@ Public Sub startRecording(mp4 As String)
   'timShow.Enabled = True
   Me.setTxtcmdText("")
   Me.isrecording = True 
-  
-  timFocus = New Timer As "timFocus"
-  timFocus.Delay = 999
-  timFocus.Start
-End
-Private timFocus As Timer
-
-Public Sub timFocus_Timer()
-  Print Application.ActiveWindow
-  Me.SetFocus()
-  Print Application.ActiveWindow
-  Print "tick"
   
 End
 
