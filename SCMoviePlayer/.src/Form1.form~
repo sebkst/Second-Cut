@@ -1,0 +1,170 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,64,80)
+  { ToggleButton1 ToggleButton tog
+    Name = "ToggleButton1"
+    MoveScaled(21,8,14,7)
+    Text = ("ToggleButton1")
+  }
+  { ToggleButton2 ToggleButton tog
+    Name = "ToggleButton2"
+    MoveScaled(0,7,14,7)
+    Text = ("ToggleButton1")
+  }
+  { ToggleButton3 ToggleButton tog
+    Name = "ToggleButton3"
+    MoveScaled(42,7,14,7)
+    Text = ("ToggleButton1")
+  }
+  { ToggleButton4 ToggleButton tog
+    Name = "ToggleButton4"
+    MoveScaled(28,0,14,7)
+    Text = ("ToggleButton1")
+  }
+  { ToggleButton5 ToggleButton tog
+    Name = "ToggleButton5"
+    MoveScaled(14,0,14,7)
+    Text = ("ToggleButton1")
+  }
+  { HBox1 HBox
+    MoveScaled(23,15,33,12)
+    Spacing = True
+    { Button2 Button
+      MoveScaled(12,6,7,5)
+      Text = ("Button1")
+    }
+    { Button1 Button
+      MoveScaled(12,0,7,5)
+      Text = ("Button1")
+    }
+  }
+  { HPanel1 HPanel
+    MoveScaled(25,29,34,8)
+    { Button3 Button
+      MoveScaled(9,3,7,5)
+      Text = ("Button1")
+    }
+    { Button4 Button
+      MoveScaled(22,3,7,5)
+      Text = ("Button1")
+    }
+  }
+  { VBox1 VBox
+    MoveScaled(0,37,69,10)
+    { Button6 Button
+      MoveScaled(53,1,7,7)
+      Picture = Picture["icon:/huge/record"]
+    }
+    { btnStop2 Button
+      MoveScaled(45,1,8,7)
+      Picture = Picture["icon:/huge/stop"]
+    }
+    { btnPause2 Button
+      MoveScaled(37,1,8,7)
+      Picture = Picture["icon:/huge/pause"]
+    }
+    { btnPlay4x2 ToggleButton
+      MoveScaled(26,1,11,7)
+      AutoResize = True
+      Text = ("4x")
+      Picture = Picture["icon:/huge/play"]
+    }
+    { btnPlay2x2 ToggleButton
+      MoveScaled(15,1,11,7)
+      AutoResize = True
+      Text = ("2x")
+      Picture = Picture["icon:/huge/play"]
+    }
+    { btnPlay2 ToggleButton
+      MoveScaled(8,1,7,7)
+      AutoResize = True
+      Picture = Picture["icon:/huge/play"]
+    }
+    { btnOpen2 Button
+      MoveScaled(0,1,8,7)
+      Picture = Picture["icon:/huge/open"]
+    }
+  }
+  { HBox3 HBox
+    MoveScaled(9,78,53,11)
+    { txtcmd TextBox
+      MoveScaled(6,0,21,5)
+    }
+    { cbVideoDevice ComboBox
+      MoveScaled(10,6,29,5)
+      ToolTip = ("webcam device")
+      List = [("/dev/video0"), ("/dev/video1"), ("/dev/video2")]
+    }
+  }
+  { HBox2 HBox
+    MoveScaled(-2,46,67,11)
+    { btnOpen Button
+      MoveScaled(0,0,8,7)
+      Picture = Picture["icon:/huge/open"]
+    }
+    { btnPlay ToggleButton
+      MoveScaled(8,0,7,7)
+      Picture = Picture["icon:/huge/play"]
+    }
+    { btnPlay2x ToggleButton
+      MoveScaled(15,0,11,7)
+      Text = ("2x")
+      Picture = Picture["icon:/huge/play"]
+    }
+    { btnPlay4x ToggleButton
+      MoveScaled(26,0,11,7)
+      Text = ("4x")
+      Picture = Picture["icon:/huge/play"]
+    }
+    { btnPause Button
+      MoveScaled(37,0,8,7)
+      Picture = Picture["icon:/huge/pause"]
+    }
+    { btnStop Button
+      MoveScaled(45,0,8,7)
+      Picture = Picture["icon:/huge/stop"]
+    }
+    { Button5 Button
+      MoveScaled(53,0,7,7)
+      Picture = Picture["icon:/huge/record"]
+    }
+  }
+  { ToolPanel1 ToolPanel
+    MoveScaled(-20,58,88,13)
+    Arrangement = Arrange.Horizontal
+    Index = 0
+    Text = ("ToolPanel1")
+    { btnOpen3 Button
+      MoveScaled(0,0,8,7)
+      Picture = Picture["icon:/huge/open"]
+    }
+    { btnPlay3 ToggleButton
+      MoveScaled(8,0,7,7)
+      Picture = Picture["icon:/huge/play"]
+    }
+    { btnPlay2x3 ToggleButton
+      MoveScaled(15,0,11,7)
+      Text = ("2x")
+      Picture = Picture["icon:/huge/play"]
+    }
+    { btnPlay4x3 ToggleButton
+      MoveScaled(25,0,11,7)
+      Text = ("4x")
+      Picture = Picture["icon:/huge/play"]
+    }
+    { btnPause3 Button
+      MoveScaled(37,0,8,7)
+      Picture = Picture["icon:/huge/pause"]
+    }
+    { btnStop3 Button
+      MoveScaled(47,0,8,7)
+      Picture = Picture["icon:/huge/stop"]
+    }
+    { Button7 Button
+      MoveScaled(58,0,7,7)
+      Picture = Picture["icon:/huge/record"]
+    }
+    Index = 0
+  }
+}

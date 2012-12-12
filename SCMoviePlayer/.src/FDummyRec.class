@@ -4,15 +4,11 @@ Inherits FMoviePlayer
 
 Public Sub _new()
   Dim m As String
-  Shell "which guvcview" To m
-  If Len(m) <= 7 Then Message.Error("Error : GuvcView was not found.\nPlease install GuvcView to use this software.\nsudo apt-get install guvcview", "Exit")
-  If Len(m) <= 7 Then Quit 
   Me.enableBtnRec(True)
-  
+
   If Len(Application.Args[1]) > 0 And Exist(Conv$(Application.Args[1], Desktop.Charset, System.Charset)) Then
       Me.recdir = Conv$(Application.Args[1], Desktop.Charset, System.Charset)
   Endif
-   
   
   Return
   
@@ -34,8 +30,10 @@ Public Sub btnRec_Click()
   If Me.isrecording Then
        Me.StopRecording()
   Else
-    Me.recfile = Me.recdir & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
-    Print "start recording into " & Me.recfile
+'    If InStr(Application.Env["_"], "bin/gambas3") > 0 Then Me.recfile = "/dev/shm/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+'    If InStr(Application.Env["_"], "bin/gambas3") <= 0 Then 
+      Me.recfile = Me.recdir & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+    Print "DUMMY start recording into " & Me.recfile
     If Len(Me.getcbVideoDeviceText()) > 0 Then
       Me.videodevice = Me.getcbVideoDeviceText()
     Endif
@@ -47,17 +45,19 @@ End
 Public Sub startRecording(mp4 As String)
   Dim r As String
   If Len(mp4) <= 0 Then Return
-  Me.oldme = [Me.ScreenX, Me.ScreenY, Me.W, Me.H]
+  Me.oldme = [Me.ScreenX, Me.ScreenY, Me.Window.W, Me.Window.H]
 
   Me.hideDwgMoviePlayerForRecording()
   Me.Move(0, Screen.AvailableHeight - 50, Screen.AvailableWidth, 50)
   Me.$bShow = True
   Me.Stacking = Window.Above
   
+  Me.recfile = ""
+  
   'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"
   '
-  r = "guvcview -p 1 --device=" & Me.videodevice & " --size=" & CStr(Me.dimRecVideo[0]) & "x" & CStr(Me.dimRecVideo[1])
-  r = r & " --video=" & Conv$(mp4, Desktop.Charset, System.Charset) ' & " --exit_on_close"
+  r = "mplayer tv:// -tv driver=v4l2:width=" & CStr(Me.dimRecVideo[0]) & ":height=" & CStr(Me.dimRecVideo[1]) & ":device=" & Me.videodevice
+  'r = r & " --video=" & Conv$(mp4, Desktop.Charset, System.Charset) ' & " --exit_on_close"
   Print r 
 '  Me.recps = Shell r For Read Write As "RecProcess"
   Me.recps = Exec Split(r, " ") For Read Write As "RecProcess"

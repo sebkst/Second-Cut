@@ -23,11 +23,11 @@ msgid ""
 "In future versions it _will_ record a feed from webcam under Linux."
 msgstr ""
 
-#: FMoviePlayer.form:29
+#: FMoviePlayer.form:30
 msgid "Second Cut Movie player"
 msgstr ""
 
-#: FMoviePlayer.form:35
+#: FMoviePlayer.form:36
 msgid ""
 "This is a test version.\n"
 "The scrolbar is disabled. It just indicates the current position/time of the "
@@ -66,63 +66,63 @@ msgid ""
 " or to the edges (move while keeping the left button pressed)."
 msgstr ""
 
-#: FMoviePlayer.form:58 FmoviePlayerToggleBUTTONS.form:54
+#: FMoviePlayer.form:59 FmoviePlayerToggleBUTTONS.form:54
 msgid "open file ..."
 msgstr ""
 
-#: FMoviePlayer.form:66 FmoviePlayerToggleBUTTONS.form:62
+#: FMoviePlayer.form:67 FmoviePlayerToggleBUTTONS.form:62
 msgid "play at quarter speed"
 msgstr ""
 
-#: FMoviePlayer.form:67 FmoviePlayerToggleBUTTONS.form:63
+#: FMoviePlayer.form:68 FmoviePlayerToggleBUTTONS.form:63
 msgid "0.25x"
 msgstr ""
 
-#: FMoviePlayer.form:75 FmoviePlayerToggleBUTTONS.form:71
+#: FMoviePlayer.form:76 FmoviePlayerToggleBUTTONS.form:71
 msgid "play at half speed"
 msgstr ""
 
-#: FMoviePlayer.form:76 FmoviePlayerToggleBUTTONS.form:72
+#: FMoviePlayer.form:77 FmoviePlayerToggleBUTTONS.form:72
 msgid "0.5x"
 msgstr ""
 
-#: FMoviePlayer.form:84 FmoviePlayerToggleBUTTONS.form:80
+#: FMoviePlayer.form:85 FmoviePlayerToggleBUTTONS.form:80
 msgid "play at normal speed"
 msgstr ""
 
-#: FMoviePlayer.form:95 FmoviePlayerToggleBUTTONS.form:91 Form1.form:133
-msgid "2x"
-msgstr ""
-
-#: FMoviePlayer.form:105 FmoviePlayerToggleBUTTONS.form:101 Form1.form:126
+#: FMoviePlayer.form:96 FmoviePlayerToggleBUTTONS.form:101
 msgid "4x"
 msgstr ""
 
-#: FMoviePlayer.form:114 FmoviePlayerToggleBUTTONS.form:110
+#: FMoviePlayer.form:106 FmoviePlayerToggleBUTTONS.form:91
+msgid "2x"
+msgstr ""
+
+#: FMoviePlayer.form:115 FmoviePlayerToggleBUTTONS.form:110
 msgid "record"
 msgstr ""
 
-#: FMoviePlayer.form:131 FmoviePlayerToggleBUTTONS.form:127
+#: FMoviePlayer.form:140 FmoviePlayerToggleBUTTONS.form:127
 msgid "stop the movie"
 msgstr ""
 
-#: FMoviePlayer.form:138 FmoviePlayerToggleBUTTONS.form:134
+#: FMoviePlayer.form:147 FmoviePlayerToggleBUTTONS.form:134
 msgid "Camera:    "
 msgstr ""
 
-#: FMoviePlayer.form:146 FmoviePlayerToggleBUTTONS.form:143 Form1.form:158
+#: FMoviePlayer.form:155 FmoviePlayerToggleBUTTONS.form:143
 msgid "webcam device"
 msgstr ""
 
-#: FMoviePlayer.form:147 FmoviePlayerToggleBUTTONS.form:144 Form1.form:159
+#: FMoviePlayer.form:156 FmoviePlayerToggleBUTTONS.form:144
 msgid "/dev/video0"
 msgstr ""
 
-#: FMoviePlayer.form:147 FmoviePlayerToggleBUTTONS.form:144 Form1.form:159
+#: FMoviePlayer.form:156 FmoviePlayerToggleBUTTONS.form:144
 msgid "/dev/video1"
 msgstr ""
 
-#: FMoviePlayer.form:147 FmoviePlayerToggleBUTTONS.form:144 Form1.form:159
+#: FMoviePlayer.form:156 FmoviePlayerToggleBUTTONS.form:144
 msgid "/dev/video2"
 msgstr ""
 
@@ -162,16 +162,4 @@ msgid ""
 "then the frame will refresh very quickly, close to normal speed.\n"
 "To modify te speed, just drag the mouse cursor closer to the center\n"
 " or to the edges (move while keeping the left button pressed)."
-msgstr ""
-
-#: Form1.form:49
-msgid "ToggleButton1"
-msgstr ""
-
-#: Form1.form:82
-msgid "Button1"
-msgstr ""
-
-#: Form1.form:208
-msgid "ToolPanel1"
 msgstr ""

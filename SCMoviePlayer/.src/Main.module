@@ -7,26 +7,44 @@
 
 
 
-
-
 Public Sub Main()
+  Dim f As FDummyRec = New FDummyRec
+  f.Show
+  showDirChooser()
+End
+
+Public Sub MainGUVC()
   Dim f As FRecGuvcview = New FRecGuvcview
-  
+  f.Show  
+End
+
+Public Sub showDirChooser()  
   Dim d As Window
   Dim dd As DirChooser
   Dim db As Button
-  
-  f.Show  
+  Dim vb As VBox
   Print CInt(Now)
   
   d = New Window
   d.Move(0, 0, 500, 500)
-  dd = New DirChooser(d)
-  dd.Resize(d.ClientW, d.ClientH)
-  dd.Show
+  vb = New VBox(d)
+  vb.AutoResize = True
+  vb.Show
+  dd = New DirChooser(vb)
+  db = New Button(vb) As "closebtn"
+  db.Resize(d.ClientW, 50)
+  db.Text = "OK"
+  dd.Resize(d.ClientW, d.ClientH - 50)
+  dd.Show '
+  db.Show
   d.show
   'Dim g As FRecMEncoder = New FRecMEncoder
   'g.Show  
+End
+Public Sub closebtn_click()
+  'Message.Info("ok") 
+  Last.Window.Close()
+  
 End
 
 

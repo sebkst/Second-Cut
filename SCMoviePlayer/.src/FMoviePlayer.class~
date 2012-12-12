@@ -8,6 +8,8 @@ Public existingPlayer As Boolean = False
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 Public recfile As String = "" ' = "/home/seb/Téléchargements/FL/sydneysabre/Second-Cut/f.flv"
+Public recdir As String = Conv$(User.home, Desktop.Charset, System.Charset)
+  
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 'Private dimRecVideo As Integer[] = [320, 240]
 Public dimRecVideo As Integer[] = [1280, 720] 
@@ -38,6 +40,7 @@ Public Sub Form_Resize()
   Dim rr As Float = dimPlayVideo[0] / dimPlayVideo[1]
   Dim dr As Float
 
+ 
 '  panButton.Resize(Me.CLientW, btnOpen.h + cbVideoDevice.H)
   If (sbFrames.Visible And HBox2.Visible) Then 
     panButton.Move(0, Me.CLientH - panButton.H, Me.CLientW, VBox1.H)
@@ -454,13 +457,14 @@ Public Sub panButton_Arrange()
     cbVideoDevice.W = panButton.W / 4
   Endif
    
-  btnOpen.W = panButton.W / 7
-  btnPlayHalf.W = panButton.W / 7 
-  btnPlayQuarter.W = panButton.W / 7
-  btnPlay2x.W = panButton.W / 7
-  btnPlay.W = panButton.W / 7
-  btnPlay4x.W = panButton.W / 7
-  btnRec.W = panButton.W / 7
+  btnOpen.W = panButton.W / 6
+  btnPlayHalf.W = panButton.W / 6 
+  btnPlayQuarter.W = panButton.W / 6
+  btnPlay.W = panButton.W / 6
+  btnRec.W = panButton.W / 6
+  btnSaveDir.W = panButton.W / 6
+  'btnPlay4x.W = panButton.W / 7
+  'btnPlay2x.W = panButton.W / 7
   
 End
 
@@ -514,8 +518,6 @@ Public Sub txtcmd_KeyPress()
 End
 
 Public Sub Stoprecording()
-  Dim m As String
-  Dim i As Integer = 0
   If Not isrecording Then Print "stop what ? I am not recording"
   
   If existingPlayer Then StopMovie() 
@@ -536,6 +538,9 @@ End
 
 Public Sub afterStopRecording()
   
+  Dim m As String
+  Dim i As Integer = 0
+
     btnRec.Background = Color.Black
 '  Try recps.Kill
 '  Wait 5
@@ -547,10 +552,10 @@ Public Sub afterStopRecording()
   'Wend 
   Me.Border = True
   Me.Stacking = Window.Normal
+  sbFrames.Show
+  HBox2.Show  
   Try i = oldme.Count
   If i >= 4 Then Try Me.move(oldme[0], oldme[1], oldme[2], oldme[3])
-  sbFrames.Show
-  HBox2.Show
   Shell "ls -sh " & recfile To m
   Print "recorded :  " & m  
 End
@@ -708,4 +713,36 @@ Private Sub getDim(f As String) As Integer[]
   ' If Not Error Then Return ret
 
   Return dimRecVideo
+End
+
+Public Sub btnSaveDir_Click()
+
+  Dim d As Window
+  Dim db As Button
+  Dim vb As VBox
+  Me.Enabled = False
+  
+  d = New Window
+  d.Move(0, 0, 500, 500)
+  vb = New VBox(d)
+  vb.AutoResize = True
+  vb.Show
+  dirch = New DirChooser(vb)
+  db = New Button(vb) As "closebtn"
+  db.Resize(d.ClientW, 50)
+  db.Text = "OK"
+  dirch.Resize(d.ClientW, d.ClientH - 50)
+  dirch.value = recdir
+  dirch.Show '
+  db.Show
+  d.show
+  'Dim g As FRecMEncoder = New FRecMEncoder
+  'g.Show  
+End
+Private dirch As DirChooser
+Public Sub closebtn_click()
+  'Message.Info("ok") 
+  Last.Window.Close()
+  Me.enabled = True  
+  recdir = dirch.selectedPath
 End

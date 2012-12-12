@@ -77,7 +77,9 @@ End
 Public Sub recProcess_Kill()
   Print "Stop Recording******************************"
   Me.isrecording = False   
+  Me.afterStopRecording()
 End
+
 Private Last_recProcess_Read As String = ""
 Public Sub recProcess_Read()
     Dim sData As String  
