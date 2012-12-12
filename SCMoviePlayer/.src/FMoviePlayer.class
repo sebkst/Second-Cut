@@ -308,7 +308,7 @@ End
 
 Public Sub Form_Open()
 
-  cbVideoDevice.Text = cbVideoDevice.List[0]
+  cbVideoDevice.Text = cbVideoDevice.List[1]
   Print "Wid = "; Hex$(dwgMoviePlayer.id)
   If Len(recfile) > 0 Then btnPlay.Enabled = True
   txtcmd.SetFocus
@@ -527,6 +527,7 @@ Public Sub Stoprecording()
   btnRec.Background = Color.Red
   Shell "kill -INT " & recps.Id Wait
   Print "sending: SIGINT To the recording Process"
+  'Print #recps, "quit"
   While isrecording
     Wait 0.05
     Print ".";

@@ -10,7 +10,6 @@
 Public Sub Main()
   Dim f As FDummyRec = New FDummyRec
   f.Show
-  showDirChooser()
 End
 
 Public Sub MainGUVC()

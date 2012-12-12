@@ -1,5 +1,7 @@
 ' Gambas class file
 
+' Gambas class file
+
 Inherits FMoviePlayer
 
 Public Sub _new()

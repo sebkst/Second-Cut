@@ -42,8 +42,8 @@ Public Sub showDirChooser()
   'g.Show  
 End
 Public Sub closebtn_click()
-  Message.Info("ok") 
-  Last.parent.Close()
+  'Message.Info("ok") 
+  Last.Window.Close()
   
 End
 
