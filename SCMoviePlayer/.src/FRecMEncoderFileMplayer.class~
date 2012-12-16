@@ -1,5 +1,8 @@
 ' Gambas class file
 
+'this is a very bad solution, uses the file currently encoded by mencoder as a source for mplayer 
+' it has a large delay
+
 Inherits FMoviePlayer
 
 'use playps too.
@@ -9,11 +12,6 @@ Public Sub _new()
   Shell "which mencoder" To m
   If Len(m) <= 7 Then Message.Error("Error : MEncoder was not found.\nPlease install MEncoder to use this software.\nsudo apt-get install mencoder", "Exit")
   If Len(m) <= 7 Then Quit 
-  Me.enableBtnRec(True)
-  
-  If Len(Application.Args[1]) > 0 And Exist(Conv$(Application.Args[1], Desktop.Charset, System.Charset)) Then
-      Me.recdir = Conv$(Application.Args[1], Desktop.Charset, System.Charset)
-  Endif
     
 End 
 
@@ -30,9 +28,9 @@ Public Sub btnRec_Click()
  
     Me.recfile = Me.recdir & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
     Print "start recording into " & Me.recfile
-    If (Len(Me.getcbVideoDeviceText()) > 0) And Exist(Me.getcbVideoDeviceText()) Then
-      Me.videodevice = Me.getcbVideoDeviceText()
-    Endif
+'    If (Len(Me.getcbVideoDeviceText()) > 0) And Exist(Me.getcbVideoDeviceText()) Then
+'      Me.videodevice = Me.getcbVideoDeviceText()
+'    Endif
     startRecording(Me.recfile)
   Endif
 End

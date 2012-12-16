@@ -74,13 +74,12 @@
         { !btnRec Button
           MoveScaled(62,0,7,7)
           #Public = True
-          Enabled = False
           Background = &H000000&
           Foreground = &HFFFFFF&
           ToolTip = ("record")
-          Picture = Picture["icon:/huge/camera"]
+          Picture = Picture["icon:/huge/record"]
         }
-        { !btnRec2 Button
+        { !btnSaveDir Button
           MoveScaled(70,0,7,7)
           #Public = True
           Background = &H000000&

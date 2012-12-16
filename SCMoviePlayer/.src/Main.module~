@@ -7,14 +7,46 @@
 
 
 
-Public Sub Main()
+Public Sub MainPlay()
   Dim f As FDummyRec = New FDummyRec
   f.Show
-  showDirChooser()
 End
 
 Public Sub MainGUVC()
   Dim f As FRecGuvcview = New FRecGuvcview
+  f.Show  
+End
+Public Sub Main()
+  
+  Dim f As FRecGstreamer = New FRecGstreamer
+  
+  f.Show  
+  'FdummyV4l2looback.findFreev4l2loopback()
+  'Print v4l2deviceIsFree("/dev/video0")
+   
+End
+
+Public Sub v4l2deviceIsFree(name As String) As Boolean
+  Dim video As VideoDevice
+  Try video = New VideoDevice(name)
+  If Error Then Return False
+  Print "new vdev"
+  'not working
+'  Try video.Image.Picture
+  If Error Then Return False
+  Print "get image"
+  Try video.Close
+  If Error Then Return False
+  Print "close"
+  video = Null 
+  If Error Then Return False
+  Return True
+End
+
+
+
+Public Sub MainMencoder()
+  Dim f As FRecMEncoderFileMplayer = New FRecMEncoderFileMplayer
   f.Show  
 End
 

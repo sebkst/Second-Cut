@@ -16,7 +16,7 @@ Public dimRecVideo As Integer[] = [1280, 720]
 'todo to add in rec params
 Const recFPS As Integer = 30
 Private VIDEO_FPS As Float
-Private ID_LENGTH As Float
+'Private ID_LENGTH As Float
 Private CURFRAME As Integer
 
 

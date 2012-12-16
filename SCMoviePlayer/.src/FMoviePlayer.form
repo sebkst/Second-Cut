@@ -74,11 +74,10 @@
         { !btnRec Button
           MoveScaled(62,0,7,7)
           #Public = True
-          Enabled = False
           Background = &H000000&
           Foreground = &HFFFFFF&
           ToolTip = ("record")
-          Picture = Picture["icon:/huge/camera"]
+          Picture = Picture["icon:/huge/record"]
         }
         { !btnSaveDir Button
           MoveScaled(70,0,7,7)
@@ -110,6 +109,8 @@
         }
         { cbVideoDevice ComboBox
           MoveScaled(52,0,27,5)
+          Visible = False
+          Enabled = False
           Background = Color.ButtonBackground
           Foreground = &HFFFFFF&
           ToolTip = ("webcam device")

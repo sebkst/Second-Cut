@@ -3,8 +3,6 @@
 Inherits FMoviePlayer
 
 Public Sub _new()
-  Dim m As String
-  Me.enableBtnRec(True)
 
   If Len(Application.Args[1]) > 0 And Exist(Conv$(Application.Args[1], Desktop.Charset, System.Charset)) Then
       Me.recdir = Conv$(Application.Args[1], Desktop.Charset, System.Charset)
@@ -12,14 +10,6 @@ Public Sub _new()
   
   Return
   
-  ' For Each m In args
-  '   Print m
-  ' Next
-  ' Print "----------"
-  ' For Each m In Application.Env
-  '   Print m & " ";
-  '   Print Application.Env[m]    
-  ' Next
   
 End 
 
@@ -34,9 +24,9 @@ Public Sub btnRec_Click()
 '    If InStr(Application.Env["_"], "bin/gambas3") <= 0 Then 
       Me.recfile = Me.recdir & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
     Print "DUMMY start recording into " & Me.recfile
-    If Len(Me.getcbVideoDeviceText()) > 0 Then
-      Me.videodevice = Me.getcbVideoDeviceText()
-    Endif
+ '   If Len(Me.getcbVideoDeviceText()) > 0 Then
+ '     Me.videodevice = Me.getcbVideoDeviceText()
+ '   Endif
     startRecording(Me.recfile)
   Endif
 End
@@ -56,8 +46,7 @@ Public Sub startRecording(mp4 As String)
   
   'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"
   '
-  'r = "mplayer tv:// -tv driver=v4l2:width=" & CStr(Me.dimRecVideo[0]) & ":height=" & CStr(Me.dimRecVideo[1]) & ":device=" & Me.videodevice
-  r = "cvlc v4l2://" & Me.videodevice & " --intf=rc"
+  r = "mplayer tv:// -tv driver=v4l2:width=" & CStr(Me.dimRecVideo[0]) & ":height=" & CStr(Me.dimRecVideo[1]) & ":device=" & Me.videodevice
   'r = r & " --video=" & Conv$(mp4, Desktop.Charset, System.Charset) ' & " --exit_on_close"
   Print r 
 '  Me.recps = Shell r For Read Write As "RecProcess"

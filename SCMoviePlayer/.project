@@ -3,10 +3,11 @@
 Title=Second Cut MP
 Startup=Main
 Icon=logo.png
-Version=3.1.14
+Version=3.2.0
 Component=gb.image
 Component=gb.qt4
 Component=gb.form
+Component=gb.v4l
 Description="This is a video-replay program to help the referee in sabre-cutting action decisions.\n\nMore generally, the software offers replay methods for any video.\nIn future versions it _will_ record a feed from webcam under Linux."
 Authors="Sebastien Mahler"
 Environment="GB_GUI=gb.qt4"

@@ -1,5 +1,8 @@
 ' Gambas class file
 
+'this is a very bad solution, uses the file currently encoded by mencoder as a source for mplayer 
+' it has a large delay
+
 Inherits FMoviePlayer
 
 'use playps too.
@@ -9,11 +12,19 @@ Public Sub _new()
   Shell "which mencoder" To m
   If Len(m) <= 7 Then Message.Error("Error : MEncoder was not found.\nPlease install MEncoder to use this software.\nsudo apt-get install mencoder", "Exit")
   If Len(m) <= 7 Then Quit 
-  Me.enableBtnRec(True)
   
-  If Len(Application.Args[1]) > 0 And Exist(Conv$(Application.Args[1], Desktop.Charset, System.Charset)) Then
-      Me.recdir = Conv$(Application.Args[1], Desktop.Charset, System.Charset)
-  Endif
+    'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"
+
+' mencoder tv:// -tv 'driver=v4l2:width=800:height=600:device=/dev/video0
+' :outfmt=yuy2:norm=0:forceaudio:alsa' -ovc lavc -lavcopts vcodec=mpeg4:vbitrate=1800 -ffourcc xvid -oac mp3lame -lameopts cbr=128 -o output.avi
+
+    'recpscmd = ["mencoder", "tv://", "-tv", "PARAMS", "-nosound", "-ovc", "lavc", "-o", Conv$(mp4, Desktop.Charset, System.Charset)]
+
+    Me.reccmd = "mencoder tv:// -tv"
+    Me.reccmd &= " driver=v4l2:width=$(WIDTH):height=$(HEIGHT):device=$(VIDEODEVICE):outfmt=yuy2:norm=0:forceaudio:alsa" 
+    Me.reccmd &= " -nosound -ovc lavc -lavcopts vcodec=mpeg4:vbitrate=1800 -ffourcc xvid -oac mp3lame -lameopts cbr=128"
+    Me.reccmd &= " -o $(FILE)"
+
     
 End 
 
@@ -30,9 +41,9 @@ Public Sub btnRec_Click()
  
     Me.recfile = Me.recdir & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
     Print "start recording into " & Me.recfile
-    If (Len(Me.getcbVideoDeviceText()) > 0) And Exist(Me.getcbVideoDeviceText()) Then
-      Me.videodevice = Me.getcbVideoDeviceText()
-    Endif
+'    If (Len(Me.getcbVideoDeviceText()) > 0) And Exist(Me.getcbVideoDeviceText()) Then
+'      Me.videodevice = Me.getcbVideoDeviceText()
+'    Endif
     startRecording(Me.recfile)
   Endif
 End
@@ -51,21 +62,11 @@ Public Sub startRecording(mp4 As String)
   Me.$bShow = True
 '  Me.Stacking = Window.Above
   
-  'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"
+  r = Me.formatReccmd(Me.reccmd, mp4, Me.dimRecVideo, Me.videodevice)
 
-' mencoder tv:// -tv 'driver=v4l2:width=800:height=600:device=/dev/video0
-' :outfmt=yuy2:norm=0:forceaudio:alsa' -ovc lavc -lavcopts vcodec=mpeg4:vbitrate=1800 -ffourcc xvid -oac mp3lame -lameopts cbr=128 -o output.avi
-
-    'recpscmd = ["mencoder", "tv://", "-tv", "PARAMS", "-nosound", "-ovc", "lavc", "-o", Conv$(mp4, Desktop.Charset, System.Charset)]
-    recpscmd = ["mencoder", "tv://", "-tv", "PARAMS", "-nosound", "-ovc", "lavc", "-lavcopts", "vcodec=mpeg4:vbitrate=1800", "-ffourcc", "xvid", "-oac", "mp3lame", "-lameopts", "cbr=128", "-o", Conv$(mp4, Desktop.Charset, System.Charset)]
-    r = "driver=v4l2:width=" & CStr(Me.dimrecvideo[0]) & ":height=" & CStr(Me.dimrecvideo[1]) & ":device=" & Me.videodevice
-    r = r & ":outfmt=yuy2:norm=0:forceaudio:alsa"
-    
-    recpscmd[3] = r
-  
-  Print Me.join(recpscmd)  
+  Print r  
 '  Me.recps = Shell r For Read Write As "RecProcess"
-  Me.recps = Exec recpscmd For Read Write As "RecProcess"
+  Me.recps = Exec Split(r, " ") For Read Write As "RecProcess"
   'dwgMoviePlayer.Hide
   'timShow.Enabled = True
   Me.setTxtcmdText("")

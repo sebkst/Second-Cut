@@ -1,1 +1,91 @@
 ' Gambas class file
+
+' Gambas class file
+
+Inherits FMoviePlayer
+
+Public Sub _new()
+
+  If Len(Application.Args[1]) > 0 And Exist(Conv$(Application.Args[1], Desktop.Charset, System.Charset)) Then
+      Me.recdir = Conv$(Application.Args[1], Desktop.Charset, System.Charset)
+  Endif
+  
+  Return
+  
+  ' For Each m In args
+  '   Print m
+  ' Next
+  ' Print "----------"
+  ' For Each m In Application.Env
+  '   Print m & " ";
+  '   Print Application.Env[m]    
+  ' Next
+  
+End 
+
+Public Sub btnRec_Click()
+  
+  'Message.Info("Hello", "OK")
+  If Me.existingPlayer Then Me.StopMovie()
+  If Me.isrecording Then
+       Me.StopRecording()
+  Else
+'    If InStr(Application.Env["_"], "bin/gambas3") > 0 Then Me.recfile = "/dev/shm/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+'    If InStr(Application.Env["_"], "bin/gambas3") <= 0 Then 
+      Me.recfile = Me.recdir & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+    Print "DUMMY start recording into " & Me.recfile
+    'If Len(Me.getcbVideoDeviceText()) > 0 Then
+    '  Me.videodevice = Me.getcbVideoDeviceText()
+    'Endif
+    startRecording(Me.recfile)
+  Endif
+End
+
+
+Public Sub startRecording(mp4 As String)
+  Dim r As String
+  If Len(mp4) <= 0 Then Return
+  Me.oldme = [Me.ScreenX, Me.ScreenY, Me.Window.W, Me.Window.H]
+
+  Me.hideDwgMoviePlayerForRecording()
+  Me.Move(0, Screen.AvailableHeight - 50, Screen.AvailableWidth, 50)
+  Me.$bShow = True
+  Me.Stacking = Window.Above
+  
+  Me.recfile = ""
+  
+  'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"
+  '
+  'r = "mplayer tv:// -tv driver=v4l2:width=" & CStr(Me.dimRecVideo[0]) & ":height=" & CStr(Me.dimRecVideo[1]) & ":device=" & Me.videodevice
+  r = "cvlc v4l2://" & Me.videodevice & " --intf=rc"
+  'r = r & " --video=" & Conv$(mp4, Desktop.Charset, System.Charset) ' & " --exit_on_close"
+  Print r 
+'  Me.recps = Shell r For Read Write As "RecProcess"
+  Me.recps = Exec Split(r, " ") For Read Write As "RecProcess"
+  'dwgMoviePlayer.Hide
+  'timShow.Enabled = True
+  Me.setTxtcmdText("")
+  Me.isrecording = True 
+  
+End
+
+
+Public Sub recProcess_Kill()
+  Print "Stop Recording******************************"
+  Me.isrecording = False   
+  Me.afterStopRecording()
+End
+
+Private Last_recProcess_Read As String = ""
+Public Sub recProcess_Read()
+    Dim sData As String  
+    Read #Last, sData, Lof(Last)
+    'sData = Read #Last, -255
+    If Not (Last_recProcess_Read == sData) Then
+      Print "recps: " & sData
+       Last_recProcess_Read = sData
+    Else 
+      Print ","; 
+    Endif
+End
+

@@ -1,0 +1,257 @@
+' Gambas class file
+
+
+'this is a good solution,
+' uses the camera to stream it to a loopback
+' then avconv encodes it
+' and  mplayer plays it 
+
+'added to /etc/rc.local :
+'aptitude install v4l2loopback-source module-assistant
+'module-assistant auto-install v4l2loopback-source
+'modprobe v4l2loopback
+
+'PROBLEM on eeepc : avconv takes much cpu
+'problem 2 : NEEDS RIGHT OPTIONS to avoid alsa buffer xrun
+'problem 3 : client has ubuntu oneiric, no avconv package (libav-tools) in ONEIRIC 
+Inherits FMoviePlayer
+
+'no use of playps.
+
+Private gstps As Process
+Private feedps As Process
+'Private loopbackdevice As String
+
+
+Public Sub _new()
+  Dim m As String
+  Dim Er As String
+  Shell "which mencoder" To m
+  If Len(m) <= 8 Then Er = "Error : MEncoder was not found.\nPlease install MEncoder to use this software.\nsudo apt-get install mencoder\n"
+  
+  Shell "which gst-launch" To m
+  If Len(m) <= 10 Then Er = Er & "Error : gst-launch was not found.\nPlease install gstreamer-tools to use this software.\nsudo apt-get install gstreamer-tools\n"
+  Shell "which avconv" To m
+  If Len(m) <= 6 Then Er = Er & "Error : avconv was not found.\nPlease install libav-tools to use this software.\nsudo apt-get install libav-tools\n"
+
+  Shell "which lsmod" To m
+  If Len(m) <= 5 Then Er = Er & "Error : lsmod not found.\nPlease install lsmod to use this software.\nsudo apt-get install lsmod\n"
+  Shell "which grep" To m
+  If Len(m) <= 4 Then Er = Er & "Error : grep not found.\nPlease install grep to use this software.\nsudo apt-get install grep\n"
+
+  Shell "lsmod | grep v4l2loopback" To m
+  If Len(m) <= 12 Then Er = Er & "Error : v4l2loopback module not found.\nPlease install the v4l2loopback module to use this software.\n\n"
+
+  Shell "which v4l-info" To m
+  If Len(m) <= 4 Then Er = Er & "Error : v4l-info not found.\nPlease install v4l-conf to use this software.\nsudo apt-get install v4l-conf\n"
+
+
+  If Len(Er) > 0 Then Message.Error(Er, "Exit")
+
+  If Len(Er) > 0 Then Quit
+   
+
+' mencoder tv:// -tv 'driver=v4l2:width=800:height=600:device=/dev/video0
+' :outfmt=yuy2:norm=0:forceaudio:alsa' -ovc lavc -lavcopts vcodec=mpeg4:vbitrate=1800 -ffourcc xvid -oac mp3lame -lameopts cbr=128 -o output.avi
+
+    'recpscmd = ["mencoder", "tv://", "-tv", "PARAMS", "-nosound", "-ovc", "lavc", "-o", Conv$(mp4, Desktop.Charset, System.Charset)]
+    'recpscmd = ["mencoder", "tv://", "-tv", "PARAMS", "-ovc", "lavc", "-lavcopts", "vcodec=mpeg4:vbitrate=1800", "-ffourcc", "xvid", "-oac", "mp3lame", "-lameopts", "cbr=128", "-o", Conv$(mp4, Desktop.Charset, System.Charset)]
+    'r = "driver=v4l2:width=" & CStr(Me.dimrecvideo[0]) & ":height=" & CStr(Me.dimrecvideo[1]) & ":device=" & freevlb
+    'r = r & ":outfmt=yuy2:norm=0:forceaudio:alsa"
+    Me.recformat = "video/x-raw-yuv,format=YUY2,width=1280,height=1024,interlaced=false,pixel-aspect-ratio=1/1,framerate=20/1"
+
+    Me.reccmd = "avconv -f alsa -i hw:0 -f video4linux2 -i $(VIDEODEVICE) $(FILE)"
+  '  r = "driver=v4l2:width=" & CStr(Me.dimrecvideo[0]) & ":height=" & CStr(Me.dimrecvideo[1]) & ":device=" & freevlb
+   ' best.......... avconv -f alsa -i hw:0 -f video4linux2 -i /dev/video4 /tmp/out.mpg
+  ' ' in mp4
+  ' avconv -f video4linux2 -i /dev/video4 -f alsa -itsoffset 100 -i hw:0 -map 1:a -map 0:v -c:v libx264 -crf 23 -preset veryfast -c:a libvo_aacenc -b:a 128k /tmp/out.mp4
+  ' avconv -f video4linux2 -i /dev/video4 -f alsa -itsoffset 100 -i hw:0 -async 1 -map 1:a -map 0:v -c:v libx264 -crf 23 -preset superfast -b:a 128k /tmp/out.mp4
+
+End 
+
+Public Sub btnRec_Click()
+  
+  'Message.Info("Hello", "OK")
+  If Me.existingPlayer Then Me.StopMovie()
+  
+  If Me.isrecording Then
+         Me.StopRecording()
+         Return
+  Endif
+  
+  If isStreaming Then StopRecording()
+  
+     Me.onbtnRec_Click()
+ 
+     Me.recfile = Me.recdir & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+     Print "start recording into " & Me.recfile
+'    If (Len(Me.getcbVideoDeviceText()) > 0) And Exist(Me.getcbVideoDeviceText()) Then
+'      Me.videodevice = Me.getcbVideoDeviceText()
+'    Endif
+    startRecording(Me.recfile)
+
+End
+
+Static Public Sub findFreev4l2loopback() As String 
+Dim m As String
+Dim n As String
+Dim ar As String[]
+
+'
+'grep for
+
+'### v4l2 device info [/dev/video4] ###
+'general info
+'    VIDIOC_QUERYCAP
+'  driver: "v4l2 loopback"
+
+
+Shell "for i in /dev/video*; do v4l-info $i | grep -q -i 'driver.*:.*v4l2.*loopback' && echo $i ; done" To m
+m = Replace(Trim(m), "\n", " ")
+Print "loopback devices : " & m
+Shell "for i in " & m & " ; do v4l-info $i | grep -q -i 'VIDIOC_ENUMINPUT' || echo $i ; done " To n
+Print "FREE loopback devices : " & Replace(Trim(n), "\n", " ")
+
+If Len(Trim(n)) <= 0 Then 
+  Message.Error("ERROR : NO FREE v4l2loopback left\n can not start streaming")
+  Return ""
+Else
+  ar = Split(Trim(n), "\n", "", True)
+  Return ar[ar.Max]
+Endif
+
+
+'for vdev in /dev/vide*; do gst-launch -v -e --gst-debug=0 videotestsrc  !  v4l2loopback device=$vdev > /dev/null & lpid=$!; echo "pid for $vdev id $lpid"; sleep 3s ;ps -f -p $lpid >/dev/null || echo "$vdev is OCCUPIED" ; ps -f -p $lpid >/dev/null && echo "$vdev should be free(d)" && kill -INT $lpid ; ps -f -p $lpid >/dev/null && echo "$lpid still alive" && kill -9 $lpid ; ps -f -p $lpid >/dev/null && echo "WWWWWWW $lpid still alive" ; ps -f -p $lpid >/dev/null || echo "ok" ; done | less
+
+'result :
+'pid for /dev/video0 id 8611
+' / dev / video0 Is OCCUPIED
+' ok
+' pid For / dev / video1 id 8618
+' / dev / video1 Is OCCUPIED
+' ok
+' pid For / dev / video2 id 8627
+' / dev / video2 should be Free(d)
+' 8627 still alive
+' ok
+' pid For / dev / video3 id 8635
+' / dev / video3 should be Free(d)
+' 8635 still alive
+' ok
+' pid For / dev / video4 id 8643
+' / dev / video4 Is OCCUPIED
+' ok
+
+
+End
+
+Public Sub StopRecording()
+  ' kill the recps (mencoder), (done in parents)
+  ' Kill feedps
+  Try Me.recps.Kill
+  Try Shell "kill -9 " & Me.recps.Id 
+  Print "recps killed"
+
+
+  Try feedps.Kill
+  ' kill gst
+  Try Shell "kill -9 " & feedps.Id
+  Print "feed mplayer killed"
+   
+  Try Shell "kill -INT " & gstps.Id 
+  Print "gstreamer INT"
+  Sleep 0.5
+  Try gstps.Kill
+  Try Shell "kill -9 " & gstps.Id 
+  Print "gstreamer killed"
+   
+  
+'  Print "gstreamer : " & gstps.State
+ ' Print "mplayer : " & feedps.State  
+End
+
+
+Public Sub startRecording(mp4 As String)
+  Dim r As String
+  Dim recpscmd As String[]
+  Dim feedpscmd As String[]
+  Dim gstpscmd As String[]
+  Dim freevlb As String = findFreev4l2loopback()
+  
+  If (Len(freevlb) <= 0) Then 
+    StopRecording()
+    Return
+  Endif
+  
+  If Len(mp4) <= 0 Then Return
+  
+  Me.oldme = []
+  Me.$bShow = True
+  Me.dimPlayVideo = Me.dimRecVideo
+  Me.prepareDwgMoviePlayer()
+  
+  gstreamerTrace = ""
+  gstpscmd = ["gst-launch", "-v", "-e", "--gst-debug=0", "v4l2src", "device=" & Me.videodevice, "!", Me.recformat, "!", "v4l2loopback", "device=" & freevlb] 
+  Print Me.join(gstpscmd)  
+' gstps = Exec gstpscmd For Read As "gstreamer"
+  gstps = Shell Me.join(gstpscmd) & " 2>&1" For Read As "gstreamer"
+  isStreaming = True
+  
+  Sleep 3
+'  While 0 >= InStr(gstreamerTrace, "GstSystemClock")
+'    Wait 0.3
+'    Print "."
+'    If InStr(gstreamerTrace, "NULL") > 0 Then Print "ERROR in GSTREAMER"
+'    If InStr(gstreamerTrace, "NULL") > 0 Then Return
+'  Wend
+  
+'  v4l2src device="/dev/video1" ! queue ! videoscale method=1 ! video/x-raw-yuv,width=320,height=240 !
+  feedpscmd = ["mplayer", "-wid", CStr(Me.getDwgMoviePlayerHandle()), "-input", "conf=/dev/null", "tv://", "-tv", "device=" & freevlb, "-ao", "null"]
+  Print Me.join(feedpscmd)  
+  feedps = Shell Me.join(feedpscmd) & " 2>&1" For Read Write As "feedmplayerps"
+'  feedps = Exec feedpscmd For Read Write As "feedmplayerps"
+
+
+  r = Me.formatReccmd(Me.reccmd, mp4, Me.dimRecVideo, freevlb)
+
+  Print r  
+'  Me.recps = Shell r For Read Write As "RecProcess"
+  Me.recps = Shell r & " 2>&1" For Read Write As "RecProcess"
+'  Me.recps = Exec recpscmd For Read Write As "RecProcess"
+  'dwgMoviePlayer.Hide
+  'timShow.Enabled = True
+  Me.setTxtcmdText("")
+  Me.isrecording = True 
+   
+End
+Public Sub recProcess_Kill()
+  Print "Stop Recording"
+  Me.isrecording = False   
+  Me.afterStopRecording()
+End
+
+Public Sub recProcess_Read()
+   Dim sData As String  
+    sData = Read #Last, -255
+    Print "avconv: " & sData
+End
+
+Private isStreaming As Boolean = False
+Private gstreamerTrace As String
+Public Sub gstreamer_Read()
+    Dim sData As String  
+    Read #Last, sData, Lof(Last)
+    gstreamerTrace &= sData
+    Print "gstreamer: " & sData
+End
+Public Sub gstreamer_Kill()
+  Print "Gstreamer stop"
+  isStreaming = False
+End
+
+Public Sub feedmplayerps_Read()
+   Dim sData As String  
+    sData = Read #Last, -255
+    Print "feedps: " & sData
+End
+

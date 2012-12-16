@@ -3,23 +3,6 @@
 Inherits FMoviePlayer
 
 Public Sub _new()
-  Dim m As String
-  Me.enableBtnRec(True)
-
-  If Len(Application.Args[1]) > 0 And Exist(Conv$(Application.Args[1], Desktop.Charset, System.Charset)) Then
-      Me.recdir = Conv$(Application.Args[1], Desktop.Charset, System.Charset)
-  Endif
-  
-  Return
-  
-  ' For Each m In args
-  '   Print m
-  ' Next
-  ' Print "----------"
-  ' For Each m In Application.Env
-  '   Print m & " ";
-  '   Print Application.Env[m]    
-  ' Next
   
 End 
 
@@ -34,9 +17,9 @@ Public Sub btnRec_Click()
 '    If InStr(Application.Env["_"], "bin/gambas3") <= 0 Then 
       Me.recfile = Me.recdir & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
     Print "DUMMY start recording into " & Me.recfile
-    If Len(Me.getcbVideoDeviceText()) > 0 Then
-      Me.videodevice = Me.getcbVideoDeviceText()
-    Endif
+ '   If Len(Me.getcbVideoDeviceText()) > 0 Then
+ '     Me.videodevice = Me.getcbVideoDeviceText()
+ '   Endif
     startRecording(Me.recfile)
   Endif
 End
