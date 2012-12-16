@@ -40,7 +40,7 @@ Public Sub _new()
   Shell "lsmod | grep v4l2loopback" To m
   If Len(m) <= 12 Then
    Er = Er & "Error : v4l2loopback module not found.\nPlease install the v4l2loopback module to use this software.\n"
-   Er = Er & "apt-get install v4l2loopback-source module-assistant && sudo module-assistant auto-install v4l2loopback-source"
+   Er = Er & "apt-get install v4l2loopback-source module-assistant \n sudo module-assistant auto-install v4l2loopback-source\n aptitude install v4l2loopback-source module-assistant\n sudo modprobe v4l2loopback"
   Endif
   Shell "which v4l-info" To m
   If Len(m) <= 4 Then Er = Er & "Error : v4l-info not found.\nPlease install v4l-conf to use this software.\nsudo apt-get install v4l-conf\n"
@@ -63,13 +63,16 @@ Me.recformat = "video/x-raw-yuv,interlaced=false,pixel-aspect-ratio=1/1,framerat
 
    
  ' record only video in OGG format
- Me.reccmd = " gst-launch v4l2src device=$(VIDEODEVICE) "
- Me.reccmd &= " ! queue ! videorate ! 'video/x-raw-yuv,framerate=30/1' ! theoraenc ! queue ! oggmux ! filesink location=$(FILE)"
+ Me.reccmd = " gst-launch v4l2src device=$(VIDEODEVICE)"
+ Me.reccmd &= " ! queue ! theoraenc ! queue ! oggmux ! filesink location=$(FILE)"
+
+' Me.reccmd &= " ! queue ! videorate ! 'video/x-raw-yuv,framerate=30/1' ! theoraenc ! queue ! oggmux ! filesink location=$(FILE)"
  
  ' record with audio :
 
-
 End 
+
+
 
 Public Sub btnRec_Click()
   
@@ -149,12 +152,43 @@ End
 
 Public Sub StopRecording()
   ' kill the recps (mencoder), (done in parents)
+  If Not Me.isrecording Then Print "stop what ? I am not recording"
+  
+  If Me.existingPlayer Then Me.StopMovie() 
+  
+  If Not Me.isrecording Then Return
+  
+  Me.btnRec.Background = Color.Red
+  Shell "kill -INT " & Me.recps.Id Wait
+  Print "sending: SIGINT To the recording Process"
+  'Print #recps, "quit"
+  ' While Me.isrecording
+  '   Wait 0.05
+  '   Print ".";
+  ' Wend
+  ' Print "\nend of recording"
+  ' 
+  
   ' Kill feedps
+    While 0 >= InStr(recprocessError & recprocessTrace, "NULL")
+       Wait 0.9
+       'Print "*" & recprocessTrace
+       'recprocessError
+       If InStr(recprocessError & recprocessTrace, "ERROR") > 0 Or InStr(recprocessError & recprocessTrace, "ERREUR") > 0 Then
+         Print "ERROR in recps"
+         Break
+       Endif
+'    If InStr(gstreamerTrace, "NULL") > 0 Then Return
+    Wend
+    
   Try Me.recps.Kill
   Try Shell "kill -9 " & Me.recps.Id 
-  Print "gstreamer recorder killed"
+  Print "gstreamer RECORDER killed"
+  Print recprocessTrace
+  
+  Print "--------------"
 
-
+  
   Try feedps.Kill
   ' kill gst
   Try Shell "kill -9 " & feedps.Id
@@ -162,11 +196,21 @@ Public Sub StopRecording()
    
   Try Shell "kill -INT " & gstps.Id 
   Print "gstreamer INT"
-  Sleep 0.5
+
+  While 0 >= InStr(gstreamerTrace, "NULL")
+    Wait 0.9
+    Print "."
+    If InStr(gstreamerTrace, "ERROR") > 0 Or InStr(gstreamerTrace, "ERREUR") > 0 Then
+       Print "ERROR in GSTREAMER"
+       Break
+    Endif
+  Wend
+  
   Try gstps.Kill
   Try Shell "kill -9 " & gstps.Id 
   Print "gstreamer killed"
-   
+  Print gstreamerTrace
+  Print "--------------"
   
 '  Print "gstreamer : " & gstps.State
  ' Print "mplayer : " & feedps.State  
@@ -193,17 +237,18 @@ Public Sub startRecording(mp4 As String)
   Me.prepareDwgMoviePlayer(True)
   
   gstreamerTrace = ""
+  gstreamerError = ""
   gstpscmd = ["gst-launch", "-v", "-e", "--gst-debug=0", "v4l2src", "device=" & Me.videodevice, "!", Me.recformat, "!", "v4l2loopback", "device=" & freevlb] 
   Print Me.join(gstpscmd)  
-' gstps = Exec gstpscmd For Read As "gstreamer"
-  gstps = Shell Me.join(gstpscmd) & " 2>&1" For Read As "gstreamer"
+  gstps = Exec gstpscmd For Read As "gstreamer"
+ ' gstps = Shell Me.join(gstpscmd) & " 2>&1" For Read As "gstreamer"
   isStreaming = True
   
   While 0 >= InStr(gstreamerTrace, "GstSystemClock")
-    Wait 0.5
+    Wait 0.9
     Print "."
-    If InStr(gstreamerTrace, "ERROR") > 0 Or InStr(gstreamerTrace, "ERREUR") > 0 Then
-       Print "ERROR in GSTREAMER"
+    If InStr(gstreamerError, "ERROR") > 0 Or InStr(gstreamerError, "ERREUR") > 0 Then
+       Message.Error("ERROR : can not access the device to stream to v4l2loopback " & gstreamerError)
        Break
     Endif
 '    If InStr(gstreamerTrace, "NULL") > 0 Then Return
@@ -219,40 +264,52 @@ Public Sub startRecording(mp4 As String)
   r = Me.formatReccmd(Me.reccmd, mp4, Me.dimRecVideo, freevlb)
   'Sleep 2.5
   Print r  
+  recprocessError = ""
+  recprocessTrace = ""
 '  Me.recps = Shell r For Read Write As "RecProcess"
-  Me.recps = Shell r & " 2>&1" For Read Write As "RecProcess"
-'  Me.recps = Exec recpscmd For Read Write As "RecProcess"
+'  Me.recps = Shell r & " 2>&1" For Read Write As "RecProcess"
+  Me.recps = Exec Split(r, " ", "", True) For Read Write As "RecProcess"
   'dwgMoviePlayer.Hide
   'timShow.Enabled = True
   Me.setTxtcmdText("")
   Me.isrecording = True 
    
 End
+Private recprocessTrace As String
+Private recprocessError As String
 Public Sub recProcess_Kill()
   Print "Stop Recording"
   Me.isrecording = False   
   Me.afterStopRecording()
+  If InStr(recprocessError, "ERROR") > 0 Or InStr(recprocessError, "ERREUR") > 0 Then
+     Message.Error("ERROR in RECORDING: verify your parameters ")
+  Endif
+
 End
 
 Public Sub recProcess_Read()
    Dim sData As String  
     sData = Read #Last, -255
-    Print "recps: " & sData
+    'Print "recps: " & sData
+    recprocessTrace &= sData
 End
 
 Private isStreaming As Boolean = False
 Private gstreamerTrace As String
+Private gstreamerError As String
+
 Public Sub gstreamer_Read()
     Dim sData As String  
     Read #Last, sData, Lof(Last)
     gstreamerTrace &= sData
     'Print "gstreamer: " & sData
-    If InStr(sData, "ERROR") > 0 Or InStr(sData, "ERREUR") > 0 Then Me.StopRecording()
 End
 Public Sub gstreamer_Kill()
   Print "gstreamer stop"
-  If InStr(gstreamerTrace, "ERROR") > 0 Or InStr(gstreamerTrace, "ERREUR") > 0 Then Print gstreamerTrace
-  If InStr(gstreamerTrace, "ERROR") > 0 Or InStr(gstreamerTrace, "ERREUR") > 0 Then Message.Error("ERROR in streaming to v4l2looopback: verify your parameters ")
+  If InStr(gstreamerError, "ERROR") > 0 Or InStr(gstreamerError, "ERREUR") > 0 Then
+     Me.StopRecording()
+     Message.Error("ERROR in streaming to v4l2looopback: verify your parameters ")
+  Endif
   isStreaming = False
 End
 
@@ -262,3 +319,14 @@ End
     'Print "feedps: " & sData
 'End
 
+Public Sub gstreamer_Error(Err As String)
+  Print "EEEEEERRRRRRRRRRR GSTREAMER : " & Err
+  gstreamerError &= err
+End
+Public Sub recProcess_Error(Err As String)
+  Print "EEEEEERRRRRRRRRRR RECPS : " & Err
+  recprocessError &= err
+End
+Public Sub Process_Error(Err As String)
+  Print "EEEEEERRRRRRRRRRR GENERAL " & Err
+End
