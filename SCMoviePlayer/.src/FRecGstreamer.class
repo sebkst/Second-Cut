@@ -22,6 +22,13 @@ Inherits FMoviePlayer
 Private gstps As Process
 Private feedps As Process
 
+Public isStreaming As Boolean = False
+
+Private gstreamerTrace As String
+Private gstreamerError As String
+Private recprocessTrace As String
+Private recprocessError As String
+
 
 Public Sub _new()
   Dim m As String
@@ -56,19 +63,53 @@ Public Sub _new()
 
   If Len(Er) > 0 Then Quit
 
+If Len(Me.recformat) <= 0 Then
+
+Print "default recordfomat"
+
+'SYDNEYSABRE config
 Me.recformat = "video/x-raw-yuv,width=1280,height=1024,interlaced=false,pixel-aspect-ratio=1/1,framerate=20/1"
+Me.recformat = "video/x-raw-yuv,width=800,height=600,interlaced=false,pixel-aspect-ratio=1/1,framerate=30/1"
 
 'eeepc
 Me.recformat = "video/x-raw-yuv,interlaced=false,pixel-aspect-ratio=1/1,framerate=30/1"
 
-   
+Endif
+  ''DO NOT PUT a  -e OPTION that causes   gst-launch to intercept ctrl-c and send an EOS  BUT HANGS OUT  
+If Len(Me.reccmd) <= 0 Then   
+Print "default recordcommand"
  ' record only video in OGG format
- Me.reccmd = " gst-launch v4l2src device=$(VIDEODEVICE)"
+ Me.reccmd = "gst-launch  v4l2src device=$(VIDEODEVICE)"
  Me.reccmd &= " ! queue ! theoraenc ! queue ! oggmux ! filesink location=$(FILE)"
 
+ ' in OGG with audio
+ Me.reccmd = "gst-launch  v4l2src device=$(VIDEODEVICE) ! videorate ! video/x-raw-yuv,framerate=30/1"
+ Me.reccmd &= " ! queue ! theoraenc ! queue ! mux. autoaudiosrc ! audio/x-raw-int,rate=48000,channels=2,depth=16"
+ Me.reccmd &= " ! queue ! audioconvert ! queue ! vorbisenc ! queue ! mux. oggmux name=mux ! filesink location=$(FILE)"
+
+' TRICKY in MP4 without audio
+' Me.reccmd = "gst-launch v4l2src device=$(VIDEODEVICE)"
+' Me.reccmd &= " ! queue ! x264enc ! mp4mux ! filesink location=$(FILE)"
+
+'''' does not make a correct index.... AND DO NOT STOP PROPERLY
+'Me.reccmd = "gst-launch  v4l2src device=$(VIDEODEVICE) "
+'Me.reccmd &= " ! queue ! videorate ! video/x-raw-yuv,framerate=30/1 ! queue ! ffmpegcolorspace ! ffenc_mpeg4 bitrate=900000"
+'Me.reccmd &= " ! queue ! ffmpegcolorspace ! x264enc byte-stream=true bitrate=200 bframes=2 ref=4 me=hex subme=4 weightb=true threads=0"
+'Me.reccmd &= " ! mux. autoaudiosrc ! audiorate ! audio/x-raw-int,rate=48000,channels=1,depth=16"
+'Me.reccmd &= " ! queue ! audioconvert ! lamemp3enc bitrate=64 target=1 ! queue ! mux. avimux name=mux"
+'Me.reccmd &= " ! filesink location=$(FILE)"
+
+' only mp4 video
+'Me.reccmd = "gst-launch  v4l2src device=$(VIDEODEVICE) " 
+'Me.reccmd &= " ! ffmpegcolorspace" 
+'Me.reccmd &= " ! ffenc_mpeg4 ! mp4mux ! filesink location=$(FILE).mp4 " 
+
+'gst-launch filesrc location=webcam.avi ! decodebin ! queue ! ffmpegcolorspace ! x264enc ! avimux ! filesink location=webcam-x264-10.avi
+ 
 ' Me.reccmd &= " ! queue ! videorate ! 'video/x-raw-yuv,framerate=30/1' ! theoraenc ! queue ! oggmux ! filesink location=$(FILE)"
  
  ' record with audio :
+Endif
 
 End 
 
@@ -126,7 +167,7 @@ Else
 Endif
 
 
-'for vdev in /dev/vide*; do gst-launch -v -e --gst-debug=0 videotestsrc  !  v4l2loopback device=$vdev > /dev/null & lpid=$!; echo "pid for $vdev id $lpid"; sleep 3s ;ps -f -p $lpid >/dev/null || echo "$vdev is OCCUPIED" ; ps -f -p $lpid >/dev/null && echo "$vdev should be free(d)" && kill -INT $lpid ; ps -f -p $lpid >/dev/null && echo "$lpid still alive" && kill -9 $lpid ; ps -f -p $lpid >/dev/null && echo "WWWWWWW $lpid still alive" ; ps -f -p $lpid >/dev/null || echo "ok" ; done | less
+'for vdev in /dev/vide*; do gst-launch -v --gst-debug=0 videotestsrc  !  v4l2loopback device=$vdev > /dev/null & lpid=$!; echo "pid for $vdev id $lpid"; sleep 3s ;ps -f -p $lpid >/dev/null || echo "$vdev is OCCUPIED" ; ps -f -p $lpid >/dev/null && echo "$vdev should be free(d)" && kill -INT $lpid ; ps -f -p $lpid >/dev/null && echo "$lpid still alive" && kill -9 $lpid ; ps -f -p $lpid >/dev/null && echo "WWWWWWW $lpid still alive" ; ps -f -p $lpid >/dev/null || echo "ok" ; done | less
 
 'result :
 'pid for /dev/video0 id 8611
@@ -151,6 +192,9 @@ Endif
 End
 
 Public Sub StopRecording()
+
+Dim i As Integer
+Dim maxwait As Integer = 99
   ' kill the recps (mencoder), (done in parents)
   If Not Me.isrecording Then Print "stop what ? I am not recording"
   
@@ -159,20 +203,26 @@ Public Sub StopRecording()
   If Not Me.isrecording Then Return
   
   Me.btnRec.Background = Color.Red
+  'Shell "kill -USR2 " & Me.recps.Id Wait
+  'Print "sending: SIGUSR2 To the recording Process"
   Shell "kill -INT " & Me.recps.Id Wait
   Print "sending: SIGINT To the recording Process"
-  'Print #recps, "quit"
-  ' While Me.isrecording
-  '   Wait 0.05
-  '   Print ".";
-  ' Wend
-  ' Print "\nend of recording"
-  ' 
+
+  Try Shell "kill -INT " & gstps.Id 
+  Print "gstreamer INT"
+
+  Try feedps.Kill
+  ' kill gst
+  Try Shell "kill -9 " & feedps.Id
+  Print "feed mplayer killed"
   
+  i = 0
   ' Kill feedps
-    While 0 >= InStr(recprocessError & recprocessTrace, "NULL")
-       Wait 0.9
-       'Print "*" & recprocessTrace
+    While i < maxwait And 0 >= InStr(recprocessError & recprocessTrace, "NULL")
+       Wait 0.2
+                  i = i + 1
+       Print "*" ' & recprocessTrace
+       'Try Shell "kill -INT " & Me.recps.Id Wait
        'recprocessError
        If InStr(recprocessError & recprocessTrace, "ERROR") > 0 Or InStr(recprocessError & recprocessTrace, "ERREUR") > 0 Then
          Print "ERROR in recps"
@@ -189,21 +239,16 @@ Public Sub StopRecording()
   Print "--------------"
 
   
-  Try feedps.Kill
-  ' kill gst
-  Try Shell "kill -9 " & feedps.Id
-  Print "feed mplayer killed"
-   
-  Try Shell "kill -INT " & gstps.Id 
-  Print "gstreamer INT"
+   i = 0
 
-  While 0 >= InStr(gstreamerTrace, "NULL")
-    Wait 0.9
+  While i < maxwait And 0 >= InStr(gstreamerTrace, "NULL")
+    Wait 0.2
     Print "."
     If InStr(gstreamerTrace, "ERROR") > 0 Or InStr(gstreamerTrace, "ERREUR") > 0 Then
        Print "ERROR in GSTREAMER"
        Break
     Endif
+    i = i + 1
   Wend
   
   Try gstps.Kill
@@ -219,7 +264,6 @@ End
 
 Public Sub startRecording(mp4 As String)
   Dim r As String
-  Dim recpscmd As String[]
   Dim feedpscmd As String[]
   Dim gstpscmd As String[]
   Dim freevlb As String = findFreev4l2loopback()
@@ -238,14 +282,14 @@ Public Sub startRecording(mp4 As String)
   
   gstreamerTrace = ""
   gstreamerError = ""
-  gstpscmd = ["gst-launch", "-v", "-e", "--gst-debug=0", "v4l2src", "device=" & Me.videodevice, "!", Me.recformat, "!", "v4l2loopback", "device=" & freevlb] 
+  gstpscmd = ["gst-launch", "-v", "v4l2src", "device=" & Me.videodevice, "!", Me.recformat, "!", "v4l2loopback", "device=" & freevlb] 
   Print Me.join(gstpscmd)  
   gstps = Exec gstpscmd For Read As "gstreamer"
  ' gstps = Shell Me.join(gstpscmd) & " 2>&1" For Read As "gstreamer"
   isStreaming = True
   
   While 0 >= InStr(gstreamerTrace, "GstSystemClock")
-    Wait 0.9
+    Wait 0.3
     Print "."
     If InStr(gstreamerError, "ERROR") > 0 Or InStr(gstreamerError, "ERREUR") > 0 Then
        Message.Error("ERROR : can not access the device to stream to v4l2loopback " & gstreamerError)
@@ -254,7 +298,7 @@ Public Sub startRecording(mp4 As String)
     Endif
 '    If InStr(gstreamerTrace, "NULL") > 0 Then Return
   Wend
-  
+  Sleep 0.3
 '  v4l2src device="/dev/video1" ! queue ! videoscale method=1 ! video/x-raw-yuv,width=320,height=240 !
   feedpscmd = ["mplayer", "-wid", CStr(Me.getDwgMoviePlayerHandle()), "-input", "conf=/dev/null", "tv://", "-tv", "device=" & freevlb, "-ao", "null"]
   Print Me.join(feedpscmd)  
@@ -276,14 +320,17 @@ Public Sub startRecording(mp4 As String)
   Me.isrecording = True 
    
 End
-Private recprocessTrace As String
-Private recprocessError As String
 Public Sub recProcess_Kill()
   Print "Stop Recording"
   Me.isrecording = False   
   Me.afterStopRecording()
   If InStr(recprocessError, "ERROR") > 0 Or InStr(recprocessError, "ERREUR") > 0 Then
      Message.Error("ERROR in RECORDING: verify your parameters ")
+     
+  Endif
+  If InStr(recprocessError, "ERROR") > 0 Or InStr(recprocessError, "ERREUR") > 0 Then
+     Message.Error("ERROR in RECORDING: verify your parameters ")
+     
   Endif
 
 End
@@ -295,9 +342,6 @@ Public Sub recProcess_Read()
     recprocessTrace &= sData
 End
 
-Private isStreaming As Boolean = False
-Private gstreamerTrace As String
-Private gstreamerError As String
 
 Public Sub gstreamer_Read()
     Dim sData As String  

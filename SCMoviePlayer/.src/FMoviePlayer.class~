@@ -184,7 +184,7 @@ Public Sub prepareDwgMoviePlayer(forRec As Boolean)
 
   dwgMoviePlayer.Show
   txtAbout.Hide()
-  If forRec Then sbFrames.Visible = False
+  'gives trouble If forRec Then sbFrames.Visible = False
   Form_Resize
   dwgMoviePlayer.Enabled = False
   
@@ -534,6 +534,7 @@ End
 Public Sub btnKill_Click()
 
   Form_Close()
+  Shell "killall -v -KILL mplayer gst-launch avconv" Wait
 
 End
 
@@ -590,7 +591,7 @@ Public Sub Stoprecording()
   
   btnRec.Background = Color.Red
   Shell "kill -INT " & recps.Id Wait
-  Print "sending: SIGINT To the recording Process"
+  Print "***sending: SIGINT To the recording Process"
   'Print #recps, "quit"
   While isrecording
     Wait 0.05
@@ -940,6 +941,7 @@ Public Sub saverec_closebtn_click()
   Next
   reccmd = Replace(txtreccmd.Text, "\n", "")
   recformat = txtrecformat.text
+  saveconfig()
 End
 
 Public Sub getconfig()
@@ -951,14 +953,15 @@ Public Sub getconfig()
     Print "error, could not save the configuration File"
     Return
   Endif
+  Print
   For Each s In c.Lines
      m = Trim(s)
-     If InStr(Lower(m), "videodevice=") == 1 Then videodevice = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-     If InStr(Lower(m), "saveto=") == 1 Then recdir = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-     If InStr(Lower(m), "recordcommand=") == 1 Then reccmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-     If InStr(Lower(m), "recordformat=") == 1 Then recformat = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-     If InStr(Lower(m), "lastplayed=") == 1 Then recfile = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-     If InStr(Lower(m), "recordsize=") == 1 Then 
+     If InStr(m, Object.Class(Me).Name & ".videodevice=") == 1 Then videodevice = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+     If InStr(m, Object.Class(Me).Name & ".saveto=") == 1 Then recdir = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+     If InStr(m, Object.Class(Me).Name & ".recordcommand=") == 1 Then reccmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+     If InStr(m, Object.Class(Me).Name & ".recordformat=") == 1 Then recformat = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+     If InStr(m, Object.Class(Me).Name & ".lastplayed=") == 1 Then recfile = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+     If InStr(m, Object.Class(Me).Name & ".recordsize=") == 1 Then 
          m = Trim(Mid(m, InStr(m, "=") + 1))
          dimRecVideo = [1280, 720]
          Try dimRecVideo[0] = CInt(Split(m, "x")[0]) 
@@ -971,6 +974,7 @@ Public Sub getconfig()
   Next
   c.Close()
 
+
   If Not Exist(recfile) Then Print "recfile not found"
   If Not Exist(recdir) Then Print "recdir not found "
   If Not Exist(videodevice) Then Print "videodevice not found"  
@@ -978,28 +982,61 @@ Public Sub getconfig()
   If Not Exist(recdir) Then recdir = ""
   If Not Exist(videodevice) Then videodevice = ""
 
-  Print recfile
-  Print recdir
-  Print videodevice
-  Print reccmd
     
 End
 
 Public Sub saveconfig()
   Dim c As File
+  Dim m As String
+  Dim ml As New String[]
+  Dim i As Integer
+
+  Try c = Open configurationFile For Read
+  If Not Error Then 
+   For Each m In c.Lines
+     Print m
+     ml.Push(m)
+   Next
+   c.Close
+   For i = 0 To ml.Max
+     If InStr(ml[i], Object.Class(Me).Name & ".videodevice=") == 1 Then ml[i] = Object.Class(Me).Name & ".videodevice=" & Quote(videodevice)
+     If InStr(ml[i], Object.Class(Me).Name & ".saveto=") == 1 Then ml[i] = Object.Class(Me).Name & ".saveto=" & Quote(recdir)
+     If InStr(ml[i], Object.Class(Me).Name & ".recordcommand=") == 1 Then ml[i] = Object.Class(Me).Name & ".recordcommand=" & Quote(reccmd)
+     If InStr(ml[i], Object.Class(Me).Name & ".recordformat=") == 1 Then ml[i] = Object.Class(Me).Name & ".recordformat=" & Quote(recformat)
+     If InStr(ml[i], Object.Class(Me).Name & ".lastplayed=") == 1 Then ml[i] = Object.Class(Me).Name & ".lastplayed=" & Quote(recfile)
+     If InStr(ml[i], Object.Class(Me).Name & ".recordsize=") == 1 Then ml[i] = Object.Class(Me).Name & ".recordsize=" & CStr(dimRecVideo[0]) & "x" & CStr(dimRecVideo[1])
+   Next
+    m = "\n" & join(ml, "\n")
+  Else
+    m = ""
+  Endif  
+  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".videodevice=") Then m &= "\n" & Object.Class(Me).Name & ".videodevice=" & Quote(videodevice)
+  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".saveto=") Then m &= "\n" & Object.Class(Me).Name & ".saveto=" & Quote(recdir)
+  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".recordcommand=") Then m &= "\n" & Object.Class(Me).Name & ".recordcommand=" & Quote(reccmd)
+  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".recordformat=") Then m &= "\n" & Object.Class(Me).Name & ".recordformat=" & Quote(recformat)
+  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".lastplayed=") Then m &= "\n" & Object.Class(Me).Name & ".lastplayed=" & Quote(recfile)
+  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".recordsize=") Then m &= "\n" & Object.Class(Me).Name & ".recordsize=" & CStr(dimRecVideo[0]) & "x" & CStr(dimRecVideo[1])
+
   Try c = Open configurationFile For Create
   If Error Then
     Print "error, could not save the configuration File"
     Return
   Endif
-  Print #c, "videodevice=" & Quote(videodevice)
-  Print #c, "saveto=" & Quote(recdir)
-  Print #c, "recordcommand=" & Quote(reccmd)
-  Print #c, "recordformat=" & Quote(recformat)
-  Print #c, "lastplayed=" & Quote(recfile)
-  Print #c, "recordsize=" & CStr(dimRecVideo[0]) & "x" & CStr(dimRecVideo[1])
-
+  ml = Split(Trim(m), "\n")
+  For Each m In ml
+    Print #c, m
+  Next
   c.Close()
+
+  Print "config saved : "
+  Try c = Open configurationFile For Read
+  If Not Error Then 
+   For Each m In c.Lines
+     Print m
+   Next
+   c.Close
+  Endif
+
 End
 
 Public Sub formatReccmd(incmd As String, mp4 As String, dims As Integer[], vdev As String) As String
@@ -1011,14 +1048,14 @@ Public Sub formatReccmd(incmd As String, mp4 As String, dims As Integer[], vdev 
   Return r
 End
 
-Public Sub join(ar As String[]) As String
+Public Sub join(ar As String[], Optional sep As String = " ") As String
   Dim r As String = ""
   Dim m As String
   For Each m In ar
     If Len(r) <= 0 Then
       r = m
     Else
-      r = r & " " & m
+      r = r & sep & m
     Endif    
   Next
   Return r

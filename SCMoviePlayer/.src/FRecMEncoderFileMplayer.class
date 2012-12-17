@@ -51,7 +51,6 @@ End
 
 Public Sub startRecording(mp4 As String)
   Dim r As String
-  Dim recpscmd As String[]
   
   If Len(mp4) <= 0 Then Return
   Me.oldme = []

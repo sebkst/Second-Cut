@@ -1,0 +1,37 @@
+' Gambas class file
+
+Inherits FRecGstreamer
+
+Public Sub _new()
+  ' sudo add-apt-repository ppa:tiomap-dev/release
+  ' sudo apt-get update
+  ' sudo apt-get install 
+  ' http://www.omappedia.com/wiki/Gstreamer_overview
+  ' 
+    Me.reccmd = "gst-launch -e -v v4l2src device=$(VIDEODEVICE) ! "
+   Me.reccmd &= " ducatih264enc ! h264parse ! qtmux ! filesink location=$(FILE)"
+  
+End
+
+Public Sub btnRec_Click()
+  
+  'Message.Info("Hello", "OK")
+  If Me.existingPlayer Then Me.StopMovie()
+  
+  If Me.isrecording Then
+         Me.StopRecording()
+         Return
+  Endif
+  
+  If Me.isStreaming Then Me.StopRecording()
+  
+     Me.onbtnRec_Click()
+ 
+     Me.recfile = Me.recdir & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mp4"
+     Print "start recording into " & Me.recfile
+'    If (Len(Me.getcbVideoDeviceText()) > 0) And Exist(Me.getcbVideoDeviceText()) Then
+'      Me.videodevice = Me.getcbVideoDeviceText()
+'    Endif
+    Me.startRecording(Me.recfile)
+
+End

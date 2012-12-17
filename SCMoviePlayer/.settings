@@ -1,5 +1,6 @@
 [Bookmarks]
 FMoviePlayer=[190]
+FRecGstreamer=[78]
 
 [Breakpoints]
 Count=0
@@ -9,14 +10,13 @@ Count=0
 
 [OpenFile]
 File[1]=".src/FMoviePlayer.form"
-File[2]=".src/FMoviePlayer.class:761.3"
-File[3]=".src/FRecGuvcview.class:76.0"
-File[4]=".src/Main.module:10.2"
-Active=5
-File[5]=".src/FDummyRec.class:11.2"
-File[6]=".src/FRecMEncoder.class:64.2"
-File[7]=".src/Fdummyvlc.class:7.0"
-Count=7
+File[2]=".src/FMoviePlayer.class:190.0"
+File[3]=".src/FRecGuvcview.class:74.0"
+Active=4
+File[4]=".src/FRecGstreamer.class:259.0"
+File[5]=".src/FRecGstDucati.class:9.4"
+File[6]=".src/Main.module:23.10"
+Count=6
 
 [Watches]
 Count=0

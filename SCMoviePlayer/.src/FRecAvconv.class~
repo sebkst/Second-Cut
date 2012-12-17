@@ -121,7 +121,7 @@ Else
 Endif
 
 
-'for vdev in /dev/vide*; do gst-launch -v -e --gst-debug=0 videotestsrc  !  v4l2loopback device=$vdev > /dev/null & lpid=$!; echo "pid for $vdev id $lpid"; sleep 3s ;ps -f -p $lpid >/dev/null || echo "$vdev is OCCUPIED" ; ps -f -p $lpid >/dev/null && echo "$vdev should be free(d)" && kill -INT $lpid ; ps -f -p $lpid >/dev/null && echo "$lpid still alive" && kill -9 $lpid ; ps -f -p $lpid >/dev/null && echo "WWWWWWW $lpid still alive" ; ps -f -p $lpid >/dev/null || echo "ok" ; done | less
+'for vdev in /dev/vide*; do gst-launch -v --gst-debug=0 videotestsrc  !  v4l2loopback device=$vdev > /dev/null & lpid=$!; echo "pid for $vdev id $lpid"; sleep 3s ;ps -f -p $lpid >/dev/null || echo "$vdev is OCCUPIED" ; ps -f -p $lpid >/dev/null && echo "$vdev should be free(d)" && kill -INT $lpid ; ps -f -p $lpid >/dev/null && echo "$lpid still alive" && kill -9 $lpid ; ps -f -p $lpid >/dev/null && echo "WWWWWWW $lpid still alive" ; ps -f -p $lpid >/dev/null || echo "ok" ; done | less
 
 'result :
 'pid for /dev/video0 id 8611
@@ -188,10 +188,10 @@ Public Sub startRecording(mp4 As String)
   Me.oldme = []
   Me.$bShow = True
   Me.dimPlayVideo = Me.dimRecVideo
-  Me.prepareDwgMoviePlayer()
+  Me.prepareDwgMoviePlayer(True)
   
   gstreamerTrace = ""
-  gstpscmd = ["gst-launch", "-v", "-e", "--gst-debug=0", "v4l2src", "device=" & Me.videodevice, "!", Me.recformat, "!", "v4l2loopback", "device=" & freevlb] 
+  gstpscmd = ["gst-launch", "-v", "--gst-debug=0", "v4l2src", "device=" & Me.videodevice, "!", Me.recformat, "!", "v4l2loopback", "device=" & freevlb] 
   Print Me.join(gstpscmd)  
 ' gstps = Exec gstpscmd For Read As "gstreamer"
   gstps = Shell Me.join(gstpscmd) & " 2>&1" For Read As "gstreamer"
