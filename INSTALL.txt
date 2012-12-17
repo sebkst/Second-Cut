@@ -3,7 +3,7 @@ added to /etc/rc.local :
 
 date >> /tmp/rc.local.out
 ls -l /dev/video* >> /tmp/rc.local.out
-apt-get install v4l2loopback-source  >> /tmp/rc.local.out
+apt-get install -f module-assistant v4l2loopback-source  >> /tmp/rc.local.out
 date >> /tmp/rc.local.out
 module-assistant auto-install v4l2loopback-source >> /tmp/rc.local.out
 date >> /tmp/rc.local.out
