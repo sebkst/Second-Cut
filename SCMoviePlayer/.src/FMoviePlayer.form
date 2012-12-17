@@ -103,6 +103,7 @@
         }
         { Labelvd Label
           MoveScaled(39,0,13,5)
+          Visible = False
           Foreground = &HFFFFFF&
           Text = ("Camera:    ")
           Alignment = Align.Right

@@ -68,11 +68,12 @@ If Len(Me.recformat) <= 0 Then
 Print "default recordfomat"
 
 'SYDNEYSABRE config
-Me.recformat = "video/x-raw-yuv,width=1280,height=1024,interlaced=false,pixel-aspect-ratio=1/1,framerate=20/1"
-Me.recformat = "video/x-raw-yuv,width=800,height=600,interlaced=false,pixel-aspect-ratio=1/1,framerate=30/1"
-
+'Me.recformat = "video/x-raw-yuv,width=1280,height=1024,interlaced=false,pixel-aspect-ratio=1/1,framerate=20/1"
+'Me.recformat = "video/x-raw-yuv,width=800,height=600,interlaced=false,pixel-aspect-ratio=1/1,framerate=30/1"
+Me.recformat = "video/x-raw-yuv,height=720,interlaced=false,pixel-aspect-ratio=1/1"
+' this seems to give a 30 FPS, while is imposed in the caps it does not negotiate the format.
 'eeepc
-Me.recformat = "video/x-raw-yuv,interlaced=false,pixel-aspect-ratio=1/1,framerate=30/1"
+'Me.recformat = "video/x-raw-yuv,interlaced=false,pixel-aspect-ratio=1/1,framerate=30/1"
 
 Endif
   ''DO NOT PUT a  -e OPTION that causes   gst-launch to intercept ctrl-c and send an EOS  BUT HANGS OUT  
@@ -161,6 +162,7 @@ Print "FREE loopback devices : " & Replace(Trim(n), "\n", " ")
 If Len(Trim(n)) <= 0 Then 
   Message.Error("ERROR : NO FREE v4l2loopback left\n can not start streaming")
   Return ""
+  
 Else
   ar = Split(Trim(n), "\n", "", True)
   Return ar[ar.Max]
@@ -264,7 +266,6 @@ End
 
 Public Sub startRecording(mp4 As String)
   Dim r As String
-  Dim recpscmd As String[]
   Dim feedpscmd As String[]
   Dim gstpscmd As String[]
   Dim freevlb As String = findFreev4l2loopback()
@@ -295,13 +296,14 @@ Public Sub startRecording(mp4 As String)
     If InStr(gstreamerError, "ERROR") > 0 Or InStr(gstreamerError, "ERREUR") > 0 Then
        Message.Error("ERROR : can not access the device to stream to v4l2loopback " & gstreamerError)
        StopRecording()
+       Me.afterStopRecording()
        Return
     Endif
 '    If InStr(gstreamerTrace, "NULL") > 0 Then Return
   Wend
   Sleep 0.3
 '  v4l2src device="/dev/video1" ! queue ! videoscale method=1 ! video/x-raw-yuv,width=320,height=240 !
-  feedpscmd = ["mplayer", "-wid", CStr(Me.getDwgMoviePlayerHandle()), "-input", "conf=/dev/null", "tv://", "-tv", "device=" & freevlb, "-ao", "null"]
+  feedpscmd = ["mplayer", "-wid", CStr(Me.getDwgMoviePlayerHandle()), "-input", "conf=/dev/null", "tv://", "-tv", "device=" & freevlb, "-ao", "null", "-framedrop", "-msglevel", "all=0"]
   Print Me.join(feedpscmd)  
   feedps = Shell Me.join(feedpscmd) & " 2>&1" For Read Write As "feedmplayerps"
 '  feedps = Exec feedpscmd For Read Write As "feedmplayerps"

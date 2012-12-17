@@ -206,7 +206,7 @@ Public Sub runMPlayer(mp4 As String, speed As Float)
   
   'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"
   '  
-  playps = Shell "mplayer -identify -wid " & CStr(dwgMoviePlayer.Handle) & " -speed " & CStr(speed) & " " & Conv$(mp4, Desktop.Charset, System.Charset) For Read Write As "Process"
+  playps = Shell "mplayer -forceidx -autosync 1 -identify -wid " & CStr(dwgMoviePlayer.Handle) & " -speed " & CStr(speed) & " " & Conv$(mp4, Desktop.Charset, System.Charset) For Read Write As "Process"
   existingPlayer = True
   
   playspeed = speed
@@ -514,18 +514,18 @@ Public Sub panButton_Arrange()
   HBox1.h = 49
   If (HBox2.Visible) Then
     HBox2.h = 35  
-    txtcmd.W = panButton.W / HBox2.Children.Count
-    btnKill.W = panButton.W / HBox2.Children.Count
-    Labelvd.W = panButton.W / HBox2.Children.Count
+    txtcmd.W = panButton.W / 2 'HBox2.Children.Count
+    btnKill.W = panButton.W / 2 ' HBox2.Children.Count
+    'Labelvd.W = panButton.W / 2 'HBox2.Children.Count
     ' cbVideoDevice.W = panButton.W / 4
   Endif
   
-  btnOpen.W = panButton.W / HBox1.Children.Count
-  btnPlayHalf.W = panButton.W / HBox1.Children.Count 
-  btnPlayQuarter.W = panButton.W / HBox1.Children.Count
-  btnPlay.W = panButton.W / HBox1.Children.Count
-  btnRec.W = panButton.W / HBox1.Children.Count
-  btnSaveDir.W = panButton.W / HBox1.Children.Count
+  btnOpen.W = panButton.W / 6 'HBox1.Children.Count
+  btnPlayHalf.W = panButton.W / 6 'HBox1.Children.Count 
+  btnPlayQuarter.W = panButton.W / 6 'HBox1.Children.Count
+  btnPlay.W = panButton.W / 6 ' HBox1.Children.Count
+  btnRec.W = panButton.W / 6 'HBox1.Children.Count
+  btnSaveDir.W = panButton.W / 6 'HBox1.Children.Count
   'btnPlay4x.W = panButton.W / 7
   'btnPlay2x.W = panButton.W / 7
   
@@ -1028,14 +1028,14 @@ Public Sub saveconfig()
   Next
   c.Close()
 
-  Print "config saved : "
-  Try c = Open configurationFile For Read
-  If Not Error Then 
-   For Each m In c.Lines
-     Print m
-   Next
-   c.Close
-  Endif
+  Print "config saved. "
+  'Try c = Open configurationFile For Read
+  'If Not Error Then 
+  '  For Each m In c.Lines
+  '    Print m
+  '  Next
+  '  c.Close
+  'Endif
 
 End
 
