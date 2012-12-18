@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Second Cut
+Comment=
+Exec=/home/john/Second-Cut/bin/SecondCutREC-3.2.2.gambas
+Type=Application
+Categories=Application;Utility;TextEditor;
+StartupNotify=true
+MimeType=text/plain;
+NoDisplay=true
+Icon=/home/john/Second-Cut/SCMoviePlayer/logo.png
