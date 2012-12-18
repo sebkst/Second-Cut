@@ -3,7 +3,7 @@
 
 'this is a good solution,
 ' uses the camera to stream it to a loopback
-' then gst-launch encodes it
+' then ffmpeg encodes it
 ' and  mplayer plays it 
 
 'added to /etc/rc.local :
@@ -13,7 +13,6 @@
 
 ' plus install gst-v4l2loopback plugin
 
-' problem : impossible to convert proper format imposed by the client on my machine.
 
 Inherits FMoviePlayer
 
@@ -58,6 +57,9 @@ Public Sub _new()
     Er = Er & "Error : v4l2loopback plugin for gstreamer not found.\n" & m & "Please install the gst-v4l2loopback module to use this software.\n"
     Er = Er & "Download and unzip https://github.com/umlaeute/gst-v4l2loopback/archive/master.zip .\n Then run: ./autogen.sh && make && make install\n"
   Endif
+  Shell "which ffmpeg" To m
+  If Len(m) <= 5 Then Er = Er & "Error : ffmpeg not found.\nPlease install the latest ffmpeg version to use this software.\n sudo add-apt-repository ppa:jon-severinsson/ffmpeg\n"
+ If Len(m) <= 5 Then Er = Er & "sudo apt-get update \n sudo apt-get dist-upgrade \n sudo apt-get install ffmpeg \n "
   
   If Len(Er) > 0 Then Message.Error(Er, "Exit")
 
@@ -70,47 +72,23 @@ Print "default recordfomat"
 'SYDNEYSABRE config
 'Me.recformat = "video/x-raw-yuv,width=1280,height=1024,interlaced=false,pixel-aspect-ratio=1/1,framerate=20/1"
 'Me.recformat = "video/x-raw-yuv,width=800,height=600,interlaced=false,pixel-aspect-ratio=1/1,framerate=30/1"
-Me.recformat = "video/x-raw-yuv,height=720,interlaced=false,pixel-aspect-ratio=1/1"
+
+'Me.recformat = "video/x-raw-yuv,height=720,interlaced=false,pixel-aspect-ratio=1/1"
 ' this seems to give a 30 FPS, while is imposed in the caps it does not negotiate the format.
-'eeepc
-'Me.recformat = "video/x-raw-yuv,interlaced=false,pixel-aspect-ratio=1/1,framerate=30/1"
+'eeepc and sydney sabre
+Me.recformat = "video/x-raw-yuv,interlaced=false,pixel-aspect-ratio=1/1,framerate=30/1"
 
 Endif
-  ''DO NOT PUT a  -e OPTION that causes   gst-launch to intercept ctrl-c and send an EOS  BUT HANGS OUT  
+
 If Len(Me.reccmd) <= 0 Then   
 Print "default recordcommand"
- ' record only video in OGG format
- Me.reccmd = "gst-launch  v4l2src device=$(VIDEODEVICE)"
- Me.reccmd &= " ! queue ! theoraenc ! queue ! oggmux ! filesink location=$(FILE)"
+ ' record only video in MPEG-one
+ ' 
+ Me.reccmd = "ffmpeg -f video4linux2 -i $(VIDEODEVICE) $(FILE)"
 
- ' in OGG with audio
- Me.reccmd = "gst-launch  v4l2src device=$(VIDEODEVICE) ! videorate ! video/x-raw-yuv,framerate=30/1"
- Me.reccmd &= " ! queue ! theoraenc ! queue ! mux. autoaudiosrc "   '"! audio/x-raw-int,rate=48000,channels=2,depth=16"
- Me.reccmd &= " ! queue ! audioconvert ! queue ! vorbisenc ! queue ! mux. oggmux name=mux ! filesink location=$(FILE)"
-
-
-' TRICKY in MP4 without audio
-' Me.reccmd = "gst-launch v4l2src device=$(VIDEODEVICE)"
-' Me.reccmd &= " ! queue ! x264enc ! mp4mux ! filesink location=$(FILE)"
-
-'''' does not make a correct index.... AND DO NOT STOP PROPERLY
-'Me.reccmd = "gst-launch  v4l2src device=$(VIDEODEVICE) "
-'Me.reccmd &= " ! queue ! videorate ! video/x-raw-yuv,framerate=30/1 ! queue ! ffmpegcolorspace ! ffenc_mpeg4 bitrate=900000"
-'Me.reccmd &= " ! queue ! ffmpegcolorspace ! x264enc byte-stream=true bitrate=200 bframes=2 ref=4 me=hex subme=4 weightb=true threads=0"
-'Me.reccmd &= " ! mux. autoaudiosrc ! audiorate ! audio/x-raw-int,rate=48000,channels=1,depth=16"
-'Me.reccmd &= " ! queue ! audioconvert ! lamemp3enc bitrate=64 target=1 ! queue ! mux. avimux name=mux"
-'Me.reccmd &= " ! filesink location=$(FILE)"
-
-' only mp4 video
-'Me.reccmd = "gst-launch  v4l2src device=$(VIDEODEVICE) " 
-'Me.reccmd &= " ! ffmpegcolorspace" 
-'Me.reccmd &= " ! ffenc_mpeg4 ! mp4mux ! filesink location=$(FILE).mp4 " 
-
-'gst-launch filesrc location=webcam.avi ! decodebin ! queue ! ffmpegcolorspace ! x264enc ! avimux ! filesink location=webcam-x264-10.avi
- 
-' Me.reccmd &= " ! queue ! videorate ! 'video/x-raw-yuv,framerate=30/1' ! theoraenc ! queue ! oggmux ! filesink location=$(FILE)"
- 
- ' record with audio :
+ ' in MPEG with audio
+ Me.reccmd = "ffmpeg -f alsa -i default -f v4l2 -i $(VIDEODEVICE) $(FILE)"
+ 'in 20 minutes (from 2fps) get back to 26 FPS
 Endif
 
 End 
@@ -131,7 +109,7 @@ Public Sub btnRec_Click()
   
      Me.onbtnRec_Click()
  
-     Me.recfile = Me.recdir & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".ogg"
+     Me.recfile = Me.recdir & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mpg"
      Print "start recording into " & Me.recfile
 '    If (Len(Me.getcbVideoDeviceText()) > 0) And Exist(Me.getcbVideoDeviceText()) Then
 '      Me.videodevice = Me.getcbVideoDeviceText()
@@ -208,11 +186,9 @@ Dim maxwait As Integer = 99
   Me.btnRec.Background = Color.Red
   'Shell "kill -USR2 " & Me.recps.Id Wait
   'Print "sending: SIGUSR2 To the recording Process"
-  Shell "kill -INT " & Me.recps.Id Wait
-  Print "sending: SIGINT To the recording Process"
-
-  Try Shell "kill -INT " & gstps.Id 
-  Print "gstreamer INT"
+  'Shell "kill -INT " & Me.recps.Id Wait
+  ' Print "sending: SIGINT To the recording Process"
+   Print #Me.recps, "q"
 
   Try feedps.Kill
   ' kill gst
@@ -221,26 +197,22 @@ Dim maxwait As Integer = 99
   
   i = 0
   ' Kill feedps
-    While i < maxwait And 0 >= InStr(recprocessError & recprocessTrace, "NULL")
-       Wait 0.2
-                  i = i + 1
-       Print "*" ' & recprocessTrace
-       'Try Shell "kill -INT " & Me.recps.Id Wait
-       'recprocessError
-       If InStr(recprocessError & recprocessTrace, "ERROR") > 0 Or InStr(recprocessError & recprocessTrace, "ERREUR") > 0 Then
-         Print "ERROR in recps"
-         Break
-       Endif
-'    If InStr(gstreamerTrace, "NULL") > 0 Then Return
-    Wend
+  '  While i < maxwait And 0 >= InStr(recprocessError & recprocessTrace, "muxing overhead")
+       Wait 0.9
+  '      i = i + 1
+  '     Print "*" 
+  '  Wend
     
   Try Me.recps.Kill
   Try Shell "kill -9 " & Me.recps.Id 
-  Print "gstreamer RECORDER killed"
+  Print "RECORDER killed"
   Print recprocessTrace
-  
+  Print "--------------"
+  Print recprocessError 
   Print "--------------"
 
+  Try Shell "kill -INT " & gstps.Id 
+  Print "gstreamer INT"
   
    i = 0
 
@@ -259,7 +231,9 @@ Dim maxwait As Integer = 99
   Print "gstreamer killed"
   Print gstreamerTrace
   Print "--------------"
-  
+
+  Me.isrecording = False   
+  Me.afterStopRecording()
 '  Print "gstreamer : " & gstps.State
  ' Print "mplayer : " & feedps.State  
 End
@@ -324,19 +298,15 @@ Public Sub startRecording(mp4 As String)
   Me.isrecording = True 
    
 End
+'seems not to be called why ??????????
 Public Sub recProcess_Kill()
   Print "Stop Recording"
   Me.isrecording = False   
   Me.afterStopRecording()
-  If InStr(recprocessError, "ERROR") > 0 Or InStr(recprocessError, "ERREUR") > 0 Then
-     Message.Error("ERROR in RECORDING: verify your parameters ")
-     
-  Endif
-  If InStr(recprocessError, "ERROR") > 0 Or InStr(recprocessError, "ERREUR") > 0 Then
-     Message.Error("ERROR in RECORDING: verify your parameters ")
-     
-  Endif
-
+  'If InStr(recprocessError, "ERROR") > 0 Or InStr(recprocessError, "ERREUR") > 0 Then
+  '   Message.Error("ERROR in RECORDING: verify your parameters "   
+  'Endif
+  
 End
 
 Public Sub recProcess_Read()
@@ -373,8 +343,17 @@ Public Sub gstreamer_Error(Err As String)
   gstreamerError &= err
 End
 Public Sub recProcess_Error(Err As String)
-  Print "EEEEEERRRRRRRRRRR RECPS : " & Err
-  recprocessError &= err
+  Dim m As String
+  If InStr(err, "time=") Then
+    'fps= 27 q=25.7 Lsize=    1017kB time=00:00:15.86 bitrate= 
+    m = Mid(err, InStr(err, "fps="), 8) 
+    err = Mid(err, 5 + InStr(err, "time="), 25)
+    m &= Mid(err, 1, -1 + InStr(err, "bitrate="))
+    
+    Me.setTxtcmdText(m)
+  Else
+    recprocessError &= err
+  Endif
 End
 Public Sub Process_Error(Err As String)
   Print "EEEEEERRRRRRRRRRR GENERAL " & Err

@@ -376,6 +376,6 @@ Public Sub recProcess_Error(Err As String)
   Print "EEEEEERRRRRRRRRRR RECPS : " & Err
   recprocessError &= err
 End
-Public Sub Process_Error(Err As String)
+Public Sub PlayProcess_Error(Err As String)
   Print "EEEEEERRRRRRRRRRR GENERAL " & Err
 End

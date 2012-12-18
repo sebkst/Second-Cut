@@ -206,7 +206,7 @@ Public Sub runMPlayer(mp4 As String, speed As Float)
   
   'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"
   '  
-  playps = Shell "mplayer -forceidx -autosync 30 -identify -wid " & CStr(dwgMoviePlayer.Handle) & " -speed " & CStr(speed) & " " & Conv$(mp4, Desktop.Charset, System.Charset) For Read Write As "Process"
+  playps = Shell "mplayer -forceidx -autosync 1 -identify -wid " & CStr(dwgMoviePlayer.Handle) & " -speed " & CStr(speed) & " " & Conv$(mp4, Desktop.Charset, System.Charset) For Read Write As "Process"
   existingPlayer = True
   
   playspeed = speed

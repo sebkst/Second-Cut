@@ -68,4 +68,20 @@ with ffmpeg : first get latest ffmpeg from :
  sudo apt-get update
  sudo apt-get upgrade --full-resolver
 
+GOOD
+encodes in mpeg one,
+still some problems with mplayer, but enable to get 30FPS
+if encoding in MP4 the speed drops to TEN fps :-(
+
+issues :
+EEEEEERRRRRRRRRRR GENERAL Requested audio codec family [mpg123] (afm=mpg123) not available.
+Enable it at compilation.
+
+EEEEEERRRRRRRRRRR GENERAL The selected video_out device is incompatible with this codec.
+Try appending the scale filter to your filter list,
+e.g. -vf spp,scale instead of -vf spp.
+
+EEEEEERRRRRRRRRRR GENERAL 
+[mp2float @ 0x59d03e0]Header missing
+
 

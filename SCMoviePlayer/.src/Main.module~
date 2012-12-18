@@ -19,7 +19,8 @@ End
 
 Public Sub Main()
   
-  Dim f As FRecGstDucati = New FRecGstDucati  
+'  Dim f As FRecGstDucati = New FRecGstDucati  
+  Dim f As Frecffmpeg = New Frecffmpeg
   f.Show  
 End
 Public Sub MainGstreamer()
