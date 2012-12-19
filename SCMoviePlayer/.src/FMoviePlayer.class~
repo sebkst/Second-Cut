@@ -21,12 +21,12 @@ Public configurationFile As String = ".secondcut"
 Public dimRecVideo As Integer[] = [1280, 720] 
 'todo to add in rec params
 Const recFPS As Integer = 30
-Private VIDEO_FPS As Float
+Private VIDEO_FPS As Float = 30
 Private ID_LENGTH As Float
 Private CURFRAME As Integer
 
 Public dimPlayVideo As Integer[] = dimRecVideo
-Public videodevice As String = "/dev/video0"
+Public videodevice As String = "/dev/video1"
 Private playspeed As Float = 1
 Private $bQuit As Boolean
 Public $bShow As Boolean
@@ -37,6 +37,7 @@ Private omy As Integer
 
 Private dirch As DirChooser 
 Private rbcam As RadioButton[]
+Private rbformat As RadioButton[]
 Private txtreccmd As TextArea
 Private txtrecformat As TextBox
 
@@ -206,7 +207,7 @@ Public Sub runMPlayer(mp4 As String, speed As Float)
   
   'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"
   '  
-  playps = Shell "mplayer -forceidx -autosync 1 -identify -wid " & CStr(dwgMoviePlayer.Handle) & " -speed " & CStr(speed) & " " & Conv$(mp4, Desktop.Charset, System.Charset) For Read Write As "Process"
+  playps = Shell "mplayer -vo xv -forceidx -identify -wid " & CStr(dwgMoviePlayer.Handle) & " -speed " & CStr(speed) & " " & Conv$(mp4, Desktop.Charset, System.Charset) For Read Write As "PlayProcess"
   existingPlayer = True
   
   playspeed = speed
@@ -217,7 +218,7 @@ Public Sub runMPlayer(mp4 As String, speed As Float)
   
 End
 
-Public Sub Process_Read()
+Public Sub PlayProcess_Read()
   
   Dim sData As String  
   Dim s As String  
@@ -235,21 +236,30 @@ Public Sub Process_Read()
   'Print sdata
   s = Trim(sData)
   
-  i = InStr(s, "A: ")
-  If i > 0 Then 
+  i = InStr(s, "V: ")
+  If i > 0 Then     
     ar = Split(Mid(s, i), "\n", "", True)   
     ar = Split(ar[0], " ", "", True, False)
     'Print ar.count
     'Print ar[3]
-    Try CURFRAME = CInt(VIDEO_FPS * CFloat(ar[3]))
-    If CURFRAME > sbFrames.MaxValue Then sbFrames.MaxValue = CURFRAME
+    Try CURFRAME = CInt(VIDEO_FPS * CFloat(ar[1]))
+    If CURFRAME > sbFrames.MaxValue Then
+       sbFrames.MaxValue = CURFRAME
+       ID_LENGTH = CFloat(CURFRAME) / VIDEO_FPS
+    Endif
     sbFrames.Value = CURFRAME
-    txtcmd.Text = ar[3]
     f = 0
-    Try f = CFloat(Trim(ar[5]))
-    If Abs(f) > 1 Then
-      Print s
-      txtcmd.Background = Color.Gray
+    Try f = CFloat(Trim(ar[1]))
+    i = CInt(f) / 60
+    txtcmd.Text = CStr(i) & ":" & Format(f - CFloat(60 * i), "00.0")
+
+    f = 0
+    If 0 < InStr(s, "A-V:") Then
+     Try f = CFloat(Trim(ar[3]))
+     If Abs(f) > 1 Then
+       Print s
+       txtcmd.Background = Color.Gray
+     Endif
     Endif
     '    Print ar[3]
   Else ' not a string of status
@@ -258,13 +268,17 @@ Public Sub Process_Read()
     If i > 0 Then 
       ar = Split(Mid(s, i), "\n", "", True)   
       ar = Split(ar[0], "=", "", True, False)
-      Try VIDEO_FPS = CFloat(Trim(ar[1]))
+      Try f = CFloat(Trim(ar[1]))
+      If f <= 30.9 And f > 0.0 Then VIDEO_FPS = f
+       
     Endif
     i = InStr(s, "ID_LENGTH=")
     If i > 0 Then 
       ar = Split(Mid(s, i), "\n", "", True)   
       ar = Split(ar[0], "=", "", True, False)
-      Try ID_LENGTH = CFloat(Trim(ar[1]))
+      If ID_LENGTH < 1 Then
+        Try ID_LENGTH = CFloat(Trim(ar[1]))
+      Endif
       sbFrames.MaxValue = CInt(ID_LENGTH * VIDEO_FPS)
       CURFRAME = 0
       sbFrames.Value = 0
@@ -275,7 +289,7 @@ Public Sub Process_Read()
 
 End
 
-Public Sub Process_Kill()
+Public Sub PlayProcess_Kill()
 
   playps.Drop()
   playps.Close()
@@ -328,14 +342,15 @@ End
 Public Sub btnOpen_Click()
   
   Dialog.Title = "Choose a video"
-  Dialog.Filter = ["*.mp4", "mp4 Video", "*", "All files"]
+  Dialog.Filter = ["*.mpg", "MPEG Video", "*", "All files"]
   Dialog.Path = recfile
   If Dialog.OpenFile() Then Return
   
   If isrecording Then Me.stopRecording()  
   If existingPlayer Then StopMovie()
   '  Wait 0.2
-  recfile = Dialog.Path  
+  recfile = Dialog.Path
+  ID_LENGTH = 0  
   runMPlayer(recfile, 1)
   
   'movemouseto(btnPlay)
@@ -533,9 +548,10 @@ End
 
 Public Sub btnKill_Click()
 
-Shell "sleep 20s && killall -v -KILL mplayer gst-launch avconv" 
-Form_Close()
-  
+Shell "sleep 9s && killall -v -KILL mplayer gst-launch gst-launch-0.10 avconv" 
+If isrecording Then Me.Stoprecording()  
+If existingPlayer Then Me.StopMovie() 
+    
 End
 
 Public Sub txtcmd_KeyPress()
@@ -576,7 +592,7 @@ Public Sub txtcmd_KeyPress()
   If "f" == Lower(Key.Text) Then 
     If isrecording Then Me.stopRecording()
     If Not existingPlayer Then runMPlayer(recfile, 1)
-    Print #playps, ".";
+    Try Print #playps, ".";
   Endif
   
 End
@@ -620,6 +636,7 @@ Public Sub afterStopRecording()
     Print "recorded :  " & m  
   Endif
 
+  ID_LENGTH = 0
 End
 
 Public Sub onbtnRec_Click()  
@@ -757,7 +774,7 @@ Public Sub getcameras() As String[]
     Shell "v4l-info " & c & " | grep -i -e '[ ]*card[ ]*:' | cut -d: -f2- " To m 
     r = r & "\n" & Trim(Replace(Trim(m), "\"", ""))
     ret.push(r)
-    Print r
+'    Print r
   Next
   
   Return ret
@@ -857,11 +874,14 @@ Public Sub btnSaveDir_Click()
   Dim hb As HBox
   Dim cams As String[]
   Dim frcam As Frame
+  Dim frformat As Frame
+  Dim formats As String[] = ["1280x1024", "1280x720", "800x600", "640x480"]
+  Dim hformats As String[] = ["height=1024", "height=720", "height=600", "height=480"]
   Dim i As Integer
   Dim lbrec As Label
   Dim lbrecformat As Label
   
-  w = New Window
+  w = New Window As "saverec"
   w.Move(0, 0, 500, 500)
   hb = New HBox(w)
   hb.AutoResize = True
@@ -883,7 +903,7 @@ Public Sub btnSaveDir_Click()
   vbo.Move(0, 0, w.ClientW / 2, w.ClientH)
   
   frcam = New Frame(vbo)
-  frcam.resize(w.ClientW / 2, w.ClientH / 3)
+  frcam.resize(w.ClientW / 2, w.ClientH / 6)
   frcam.Text = "Select video source"
   'frcam.Show
   cams = getcameras()
@@ -909,22 +929,48 @@ Public Sub btnSaveDir_Click()
   txtreccmd = New TextArea(vbo)
   txtreccmd.Wrap = True
   txtreccmd.Text = reccmd
-  txtreccmd.Resize(w.ClientW / 2, w.ClientH / 4)
+  txtreccmd.Resize(w.ClientW / 2, w.ClientH / 6)
   lbrecformat = New Label(vbo)
   lbrecformat.AutoResize = True
   lbrecformat.Padding = 9
   lbrecformat.text = "recording format"
-  lbrecformat.Tooltip = "string to impose FPS or Size, given to gstreamer"
+  lbrecformat.Tooltip = "impose FPS, given to gstreamer"
   txtrecformat = New TextBox(vbo)
-  txtrecformat.text = recformat
+  ' see later 
   txtrecformat.Resize(w.ClientW / 2, lbrecformat.h)
+  txtrecformat.ReadOnly = True
+  txtrecformat.Enabled = False
+  
+  frformat = New Frame(vbo)
+  frformat.resize(w.ClientW / 2, w.ClientH / 6)
+  frformat.Text = "Select video format"
+  rbformat = New RadioButton[formats.Count]
+  For i = 0 To formats.max
+    rbformat[i] = New RadioButton(frformat)
+    rbformat[i].AutoResize = True
+    rbformat[i].Text = formats[i]
+    rbformat[i].Tooltip = hformats[i]
+    If 0 < InStr(recformat, rbformat[i].Tooltip) Then
+     rbformat[i].Value = True
+     txtrecformat.text = Replace(recformat, "," & rbformat[i].Tooltip, "")
+    Else
+     rbformat[i].Value = False
+    Endif
+    rbformat[i].move(9, 20 + i * rbformat[i].h)
+  Next
+  If rbformat[formats.Max].y + rbformat[formats.Max].H + 20 > frformat.h Then frformat.h = 20 + rbformat[formats.Max].y + rbformat[formats.Max].H 
     
   db = New Button(vbo) As "saverec_closebtn"
-  db.Resize(w.ClientW / 2, vbo.ClientH - frcam.H - lbdirch.h - txtreccmd.h - lbrecformat.h - txtrecformat.h)
+  db.Resize(w.ClientW / 2, vbo.ClientH - frformat.H - frcam.H - lbdirch.h - txtreccmd.h - lbrecformat.h - txtrecformat.h)
   db.Text = "OK"
  
-  w.show
+  w.ShowModal()
+  'Me.Enabled = False
 
+End
+
+Public Sub saverec_Close()  
+  'Me.Enabled = True
 End
 
 
@@ -932,15 +978,21 @@ Public Sub saverec_closebtn_click()
   'Message.Info("ok") 
   Dim r As RadioButton
   Last.Window.Close()
-  Me.enabled = True  
+  'Me.enabled = True  
   Try recdir = dirch.selectedPath
   For Each r In rbcam
     If r.Value Then 
       videodevice = r.Tooltip
     Endif
   Next
-  reccmd = Replace(txtreccmd.Text, "\n", "")
   recformat = txtrecformat.text
+  For Each r In rbformat
+    If r.Value Then
+      Try dimRecVideo = [CInt(Trim(Split(r.Text, "x")[0])), CInt(Trim(Split(r.Text, "x")[1]))] 
+      recformat = recformat & "," & r.Tooltip
+    Endif  
+  Next
+  reccmd = Replace(txtreccmd.Text, "\n", "")
   saveconfig()
 End
 

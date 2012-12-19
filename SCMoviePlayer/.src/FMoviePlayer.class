@@ -621,6 +621,8 @@ Public Sub afterStopRecording()
   
   Dim m As String
   Dim i As Integer = 0
+  Dim f As Float = 0
+  Dim ar As String  
   
   btnRec.Background = Color.Black
   btnSaveDir.Enabled = True
@@ -637,6 +639,18 @@ Public Sub afterStopRecording()
   Endif
 
   ID_LENGTH = 0
+  ar = Split(txtcmd.Text, " ", "", True)
+  If ar.Count == 3 Then
+     If Split(Trim(ar[2]), ":").Count == 3 Then
+        m = Trim(ar[2])
+        ar = Split(m, ":")
+        Try f = CFloat(ar[2])
+        Try f = f + 60 * CInt(ar[1])
+        Try f = f + 3600 * CInt(ar[0])
+        Print "just recorded : " & f & " seconds" 
+        ID_LENGTH = f        
+     Endif
+  Endif
 End
 
 Public Sub onbtnRec_Click()  
