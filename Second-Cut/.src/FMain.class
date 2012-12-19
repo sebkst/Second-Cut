@@ -1,0 +1,453 @@
+' Gambas class file
+
+Private recps As Process
+Private playps As Process
+Private feedps As Process
+Private isplaying As Boolean = False
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'Private recfile As String = "/home/seb/Téléchargements/FL/sydneysabre/Second-Cut/big_buck_bunny.mp4"
+Private recfile As String = "/home/seb/Téléchargements/FL/sydneysabre/Second-Cut/f.flv"
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'Private dimRecVideo As Integer[] = [320, 240]
+Private dimRecVideo As Integer[] = [1280, 720] 
+'todo to add in rec params
+Const recFPS As Integer = 30
+Private dimPlayVideo As Integer[] = [320, 240]
+Const feedFPS As Integer = 10
+
+Private videodevice As String = "/dev/video0"
+
+Const pPAUSE As String = "P"
+Const pQUIT As String = "P"
+Const pHALF As String = "{"
+Const pDOUBLE As String = "}"
+Private playspeed As Integer = 0
+Const HALF As Integer = 4
+Const QUARTER As Integer = 2
+Const NORMAL As Integer = 8
+Const DOUBLE As Integer = 16
+Const QUAD As Integer = 32
+
+Public Sub _new()
+  cbVideoDevice.Text = cbVideoDevice.List[0]
+End
+
+Public Sub Form_Open()
+  
+End
+
+Public Sub btnRecPause_Click()
+  Dim recpscmd As String[]
+  Dim feedpscmd As String[]
+  Dim s As String
+  resetButtons()
+  If btnRecPause.Value Then 
+    ''' if isplaying Then
+    
+    Try Print #playps, pQUIT
+    Try playps.Kill()
+    
+    recfile = Application.path & "/" & Format(Now, "yyyy-mm-dd_hh-nn-ss") & ".mp4"
+    Print "start recording in " & recfile
+    If Len(cbVideoDevice.Text) > 0 Then
+      videodevice = cbVideoDevice.Text
+    Endif
+    recpscmd = ["mencoder", "tv://", "-tv", "PARAMS", "-nosound", "-ovc", "lavc", "-o", recfile]
+    recpscmd[3] = "driver=v4l2:width=" & CStr(dimrecvideo[0]) & ":height=" & CStr(dimrecvideo[1]) & ":device=" & videodevice
+'todo add fps=30
+    Print join(recpscmd)
+    recps = Exec recpscmd For Read Write As "recProcess"
+    btnRecPause.Text = "Stop"
+    
+    Try Print #feedps, pPAUSE
+    If Error Then
+      Print Error.Text & " :: " & Error.Where & Error.Backtrace 
+      Print "starting a new feed"
+      Form_Resize()
+      dwgscreen.Show
+      dwgscreen.Enabled = False
+      'feedpscmd = ["mplayer", "-tv", "PARAMS", "tv://", "-wid", CStr(dwgscreen.Handle), "-slave"]
+      'feedpscmd[2] = "driver=v4l2:gain=1:width=" & CStr(dimPlayVideo[0]) & ":height=" & CStr(dimPlayVideo[1]) & ":device=" & videodevice & ":fps=" & feedFPS & ":outfmt=rgb16"
+      feedpscmd = ["mplayer", "-slave", "-geometry", CStr(dimPlayVideo[0]) & "x" & CStr(dimPlayVideo[1]), recfile]
+      
+      Print join(feedpscmd)
+      While True
+        Shell "ls -1 -s " & Quote(recfile) & " | cut -d' ' -f1 " To s
+        s = Trim(s)
+        Sleep 0.3
+        If Len(s) > 0 Then
+          Print s & " ";
+          If CInt(s) > 99 Then Break
+        Endif
+      Wend
+      Print
+      Try feedps = Exec feedpscmd For Read Write As "feedProcess"
+      If Error Then Print Error.Text & " :: " & Error.Where 
+    Else
+      Print "resume feed"
+    Endif
+
+   Else
+    Print "TODO send CTRL C to recps"
+    Try recps.Kill()
+    If Error Then Print Error.Text & " :: " & Error.Where 
+        
+    Print "stop and save the recording"
+    Shell "ls -hs " & recfile Wait
+    btnRecPause.Text = "Rec"
+    Try Print #feedps, pPAUSE
+    If Error Then Print Error.Text & " :: " & Error.Where 
+  Endif
+End
+
+Public Sub recProcess_kill()
+  
+  Print "record process killed"
+  
+End
+
+
+
+Public Sub dwgscreen_MouseDown()
+
+Print "pause"
+End
+
+
+Public Sub btnplay_Click()
+  resetButtons()
+
+  If Not isplaying Then
+    Try recps.Kill()    
+    btnplay.Text = "II"    
+    Try Print #playps, pPAUSE    
+    If Error Then 
+      runplayer(recfile, NORMAL)
+    Else
+      Print "Resume"
+      setspeed(NORMAL)
+    Endif
+    ' "-input", "nodefault-binds:conf=/dev/null", 
+    isplaying = True
+  Else
+    btnplay.Text = "|>"
+    Try Print #playps, pPAUSE
+    If Error Then Print "error in pause ?? " & Error.Text
+    isplaying = False
+    Print "pause"
+  Endif
+'cmd on stdin ===== -slave
+'desactivate inputs -input nodefault-binds:conf=/dev/null
+End
+
+Private Sub setspeed(s As Integer)
+  Select Case s
+    Case HALF
+      Select Case playspeed
+        Case QUARTER
+           Try Print #playps, pDOUBLE
+        Case HALF
+           Print "no change of speed"
+        Case NORMAL
+           Try Print #playps, pHALF
+        Case QUAD
+           Try Print #playps, pHALF
+           Try Print #playps, pHALF
+           Try Print #playps, pHALF
+        Case DOUBLE
+           Try Print #playps, pHALF
+           Try Print #playps, pHALF
+         End Select
+
+    Case QUARTER
+      Select Case playspeed
+        Case QUARTER
+          Print "no change of speed"
+        Case HALF
+          Try Print #playps, pHALF
+        Case NORMAL
+          Try Print #playps, pHALF
+          Try Print #playps, pHALF
+        Case QUAD
+          Try Print #playps, pHALF
+          Try Print #playps, pHALF
+          Try Print #playps, pHALF
+          Try Print #playps, pHALF
+        Case DOUBLE
+          Try Print #playps, pHALF
+          Try Print #playps, pHALF
+          Try Print #playps, pHALF
+      End Select
+
+    Case NORMAL
+      Select Case playspeed
+        Case QUARTER
+           Try Print #playps, pDOUBLE
+           Try Print #playps, pDOUBLE
+        Case HALF
+           Try Print #playps, pDOUBLE
+        Case NORMAL
+          Print "no change of speed"           
+        Case QUAD
+           Try Print #playps, pHALF
+           Try Print #playps, pHALF
+        Case DOUBLE
+           Try Print #playps, pHALF
+      End Select
+
+    Case DOUBLE
+      Select Case playspeed
+        Case QUARTER
+           Try Print #playps, pDOUBLE
+           Try Print #playps, pDOUBLE
+           Try Print #playps, pDOUBLE
+        Case HALF
+           Try Print #playps, pDOUBLE
+           Try Print #playps, pDOUBLE
+        Case NORMAL
+           Try Print #playps, pDOUBLE
+        Case QUAD
+           Try Print #playps, pHALF
+        Case DOUBLE
+          Print "no change of speed"
+      End Select
+
+    Case QUAD
+      Select Case playspeed
+        Case QUARTER
+           Try Print #playps, pDOUBLE
+           Try Print #playps, pDOUBLE
+           Try Print #playps, pDOUBLE
+           Try Print #playps, pDOUBLE
+        Case HALF
+           Try Print #playps, pDOUBLE
+           Try Print #playps, pDOUBLE
+           Try Print #playps, pDOUBLE
+        Case NORMAL
+           Try Print #playps, pDOUBLE
+           Try Print #playps, pDOUBLE
+        Case QUAD
+          Print "no change of speed"
+        Case DOUBLE
+           Try Print #playps, pDOUBLE
+      End Select
+  End Select
+  playspeed = s  
+End
+
+Public Sub playProcess_Kill()
+  
+Print "play finished : end of video"  
+isplaying = False
+resetButtons()
+End
+
+Private Sub resetButtons()
+btnRecPause.Text = "Rec"
+btnplay4x.Text = "|>> 4x"
+btnplay2x.Text = "|>> 2x"
+btnplay.Text = "|>"
+btnplayHalf.Text = "|-> 0.5"
+btnplayQuarter.Text = "|-> 0.25"
+End 
+
+Public Sub Form_Resize()
+
+  dwgscreen.Move(8, 8, Me.ClientW - VBox1.W - 8, Me.ClientH - cbVideoDevice.H - 8)
+  dimPlayVideo = [dwgscreen.W, dwgscreen.H]
+End
+
+Public Sub join(strings As String[]) As String
+  Dim s As String
+  Dim r As String = ""
+  For Each s In Strings 
+    r &= " " & s
+  Next
+  Return Mid(r, 1)
+End
+
+
+Private Sub runplayer(mp4 As String, speed As Integer)
+  Print "launching player with " & mp4 & " at " & CStr(speed)
+
+  
+    Form_Resize
+    dwgscreen.Show
+    dwgscreen.Enabled = False
+
+  Print join(["mplayer", "-slave", "-wid", CStr(dwgscreen.Handle), mp4])
+  'test args
+  'NON TEST : -ao null
+  Try playps = Exec ["mplayer", "-slave", "-wid", CStr(dwgscreen.Handle), mp4] For Read Write As "playProcess"
+  
+  If Error Then 
+    Print "error in launching player with " & mp4 & ":\n" & Error.Text & " :: " & Error.Where
+    Return
+  Endif
+  Select Case speed
+    Case HALF
+    Try Print #playps, pHALF       
+    Case QUARTER
+    Try Print #playps, pHALF       
+    Try Print #playps, pHALF       
+    Case NORMAL
+      'ok
+    Case DOUBLE
+    Try Print #playps, pDOUBLE       
+    Case QUAD
+    Try Print #playps, pDOUBLE       
+    Try Print #playps, pDOUBLE       
+  End Select
+  If Error Then Print "error in changing speed:\n" & Error.Text & " :: " & Error.Where
+  playspeed = speed
+End
+
+Public Sub playProcess_Read()
+  While Not Eof(playps)
+  Print "playps : " & playps.ReadLine() 
+  Wend   
+End
+Public Sub feedProcess_Read()
+  While Not Eof(feedps)
+  Print "feedps : " & feedps.ReadLine() 
+  Wend   
+End
+Public Sub recProcess_Read()
+  While Not Eof(recps)
+  Print "recps : " & recps.ReadLine() 
+  Wend   
+End
+
+Public Sub btnplay2x_Click()
+  resetButtons()
+
+  Print "play 2x"
+  If Not isplaying Then
+    Try recps.Kill()    
+    btnplay2x.Text = "II"    
+    Try Print #playps, ""    
+    If Error Then 
+      runplayer(recfile, DOUBLE)
+    Else
+      Print "Resume"
+      Print #playps, pPAUSE
+      setspeed(DOUBLE)
+    Endif
+    ' "-input", "nodefault-binds:conf=/dev/null", 
+    isplaying = True
+  
+  Else
+    btnplay2x.Text = "|>> 2x"
+    Try Print #playps, pPAUSE
+    If Error Then Print "error in pause ?? " & Error.Text
+    isplaying = False
+    Print "pause"
+  Endif
+
+End
+
+Public Sub btnplay4x_Click()
+  resetButtons()
+
+  Print "play 4x"
+  If Not isplaying Then
+    Try recps.Kill()    
+    btnplay4x.Text = "II"    
+    Try Print #playps, ""    
+    If Error Then 
+      runplayer(recfile, QUAD)
+    Else
+      Print "Resume"
+      Print #playps, pPAUSE
+      setspeed(QUAD)
+    Endif
+    ' "-input", "nodefault-binds:conf=/dev/null", 
+    isplaying = True
+  
+  Else
+    btnplay4x.Text = "|>> 4x"
+    Try Print #playps, pPAUSE
+    If Error Then Print "error in pause ?? " & Error.Text
+    isplaying = False
+    Print "pause"
+  Endif
+
+End
+
+Public Sub form_Close()
+  
+  Try feedps.Kill()
+  Try recps.Kill()
+  Try playps.Kill()
+  
+End
+
+
+
+Public Sub btnOpenFile_Click()
+  Dim f As String
+  Dialog.Title = "Choose a video"
+  Dialog.Filter = ["*.mp4", "mp4 Video", "*", "All files"]
+  Dialog.Path = "."
+  If Dialog.OpenFile(False) Then Return
+  recfile = Dialog.Path
+  Print "opening " & recfile
+  Try recps.kill
+  Try playps.Kill
+  btnplay_Click()
+End
+
+
+Public Sub btnplayHalf_Click()
+  resetButtons()
+  Print "play 0.5x"
+  If Not isplaying Then
+    Try recps.Kill()    
+    btnplayHalf.Text = "II"    
+    Try Print #playps, ""    
+    If Error Then 
+      runplayer(recfile, HALF)
+    Else
+      Print "Resume"
+      Print #playps, pPAUSE
+      setspeed(HALF)
+    Endif
+    ' "-input", "nodefault-binds:conf=/dev/null", 
+    isplaying = True
+  
+  Else
+    btnplayHalf.Text = "|-> 0.5x"
+    Try Print #playps, pPAUSE
+    If Error Then Print "error in pause ?? " & Error.Text
+    isplaying = False
+    Print "pause"
+  Endif
+End
+
+Public Sub btnplayQuarter_Click()
+  resetButtons()
+  Print "play 0.25x"
+  If Not isplaying Then
+    Try recps.Kill()    
+    btnplayQuarter.Text = "II"    
+    Try Print #playps, ""    
+    If Error Then 
+      runplayer(recfile, QUARTER)
+    Else
+      Print "Resume"
+      Print #playps, pPAUSE
+      setspeed(QUARTER)
+    Endif
+    ' "-input", "nodefault-binds:conf=/dev/null", 
+    isplaying = True
+  
+  Else
+    btnplay4x.Text = "|-> 0.25x"
+    Try Print #playps, pPAUSE
+    If Error Then Print "error in pause ?? " & Error.Text
+    isplaying = False
+    Print "pause"
+  Endif
+
+
+End

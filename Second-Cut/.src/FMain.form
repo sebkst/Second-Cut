@@ -1,0 +1,56 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,50,41)
+  { HBox1 HBox
+    MoveScaled(0,0,49,39)
+  }
+  { VBox1 VBox
+    MoveScaled(38,0,11,36)
+    { btnRecPause ToggleButton
+      MoveScaled(0,0,10,4)
+      Text = ("Rec")
+    }
+    { btnplayQuarter Button
+      MoveScaled(0,4,10,4)
+      Text = ("|-> 0.25x")
+    }
+    { btnplayHalf Button
+      MoveScaled(0,8,10,4)
+      Text = ("|-> 0.5x")
+    }
+    { btnplay Button
+      MoveScaled(0,12,10,4)
+      Text = ("|>")
+    }
+    { btnplay2x Button
+      MoveScaled(0,16,10,4)
+      Text = ("|>> 2x")
+    }
+    { btnplay4x Button
+      MoveScaled(0,20,10,4)
+      Text = ("|>> 4x")
+    }
+    { btnOpenFile Button
+      MoveScaled(0,27,10,4)
+      ToolTip = ("open another video")
+      Text = ("open...")
+    }
+  }
+  { VBox2 VBox
+    MoveScaled(0,0,36,37)
+    { dwgscreen DrawingArea
+      MoveScaled(0,0,35,33)
+      Visible = False
+      Enabled = False
+      Background = &H000000&
+      Border = Border.Sunken
+      Focus = True
+    }
+    { cbVideoDevice ComboBox
+      MoveScaled(0,33,35,4)
+      ToolTip = ("webcam device")
+      List = [("/dev/video0"), ("/dev/video1"), ("/dev/video2")]
+    }
+  }
+}
