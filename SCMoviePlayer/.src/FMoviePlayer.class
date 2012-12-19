@@ -622,7 +622,7 @@ Public Sub afterStopRecording()
   Dim m As String
   Dim i As Integer = 0
   Dim f As Float = 0
-  Dim ar As String  
+  Dim ar As String[]  
   
   btnRec.Background = Color.Black
   btnSaveDir.Enabled = True
@@ -640,9 +640,9 @@ Public Sub afterStopRecording()
 
   ID_LENGTH = 0
   ar = Split(txtcmd.Text, " ", "", True)
-  If ar.Count == 3 Then
-     If Split(Trim(ar[2]), ":").Count == 3 Then
-        m = Trim(ar[2])
+  If ar.Count == 2 Then
+     If Split(Trim(ar[1]), ":").Count == 3 Then
+        m = Trim(ar[1])
         ar = Split(m, ":")
         Try f = CFloat(ar[2])
         Try f = f + 60 * CInt(ar[1])

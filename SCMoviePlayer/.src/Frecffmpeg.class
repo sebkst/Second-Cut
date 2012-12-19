@@ -360,7 +360,7 @@ Public Sub recProcess_Error(Err As String)
   Dim m As String
   If InStr(err, "time=") Then
     'fps= 27 q=25.7 Lsize=    1017kB time=00:00:15.86 bitrate= 
-    m = Mid(err, InStr(err, "fps="), 8) 
+    m = Replace(Mid(err, InStr(err, "fps="), 8), " ", "") & " " 
     err = Mid(err, 5 + InStr(err, "time="), 25)
     m &= Mid(err, 1, -1 + InStr(err, "bitrate="))
     
