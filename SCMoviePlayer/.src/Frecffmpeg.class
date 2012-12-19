@@ -256,7 +256,7 @@ Public Sub startRecording(mp4 As String)
   Me.oldme = []
   Me.$bShow = True
   Me.dimPlayVideo = Me.dimRecVideo
-  Me.prepareDwgMoviePlayer(True)
+  Me.prepareDwgMoviePlayer()
   
   gstreamerTrace = ""
   gstreamerError = ""

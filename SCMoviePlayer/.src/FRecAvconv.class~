@@ -173,7 +173,6 @@ End
 
 Public Sub startRecording(mp4 As String)
   Dim r As String
-  Dim recpscmd As String[]
   Dim feedpscmd As String[]
   Dim gstpscmd As String[]
   Dim freevlb As String = findFreev4l2loopback()

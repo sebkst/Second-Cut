@@ -76,7 +76,7 @@ Print "default recordfomat"
 'Me.recformat = "video/x-raw-yuv,height=720,interlaced=false,pixel-aspect-ratio=1/1"
 ' this seems to give a 30 FPS, while is imposed in the caps it does not negotiate the format.
 'eeepc and sydney sabre
-Me.recformat = "video/x-raw-yuv,height=600,interlaced=false,pixel-aspect-ratio=1/1" ',framerate=30/1"
+Me.recformat = "video/x-raw-yuv,height=720,interlaced=false,pixel-aspect-ratio=1/1" ',framerate=30/1"
 
 Endif
 
@@ -360,7 +360,7 @@ Public Sub recProcess_Error(Err As String)
   Dim m As String
   If InStr(err, "time=") Then
     'fps= 27 q=25.7 Lsize=    1017kB time=00:00:15.86 bitrate= 
-    m = Mid(err, InStr(err, "fps="), 8) 
+    m = Replace(Mid(err, InStr(err, "fps="), 8), " ", "") & " " 
     err = Mid(err, 5 + InStr(err, "time="), 25)
     m &= Mid(err, 1, -1 + InStr(err, "bitrate="))
     

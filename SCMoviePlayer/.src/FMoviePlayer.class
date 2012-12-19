@@ -189,7 +189,7 @@ End
 
 
 
-Public Sub prepareDwgMoviePlayer(forRec As Boolean)
+Public Sub prepareDwgMoviePlayer()
 
   dwgMoviePlayer.Show
   txtAbout.Hide()
@@ -206,7 +206,7 @@ Public Sub runMPlayer(mp4 As String, speed As Float)
   If Len(mp4) <= 0 Then Return
   
   dimPlayVideo = getDim(mp4)
-  prepareDwgMoviePlayer(False)
+  prepareDwgMoviePlayer()
   '  '.Mouse = Mouse.Default
   '  Form_Resize
   '  '.Enabled = FALSE
@@ -1195,6 +1195,36 @@ Public Sub join(ar As String[], Optional sep As String = " ") As String
   Next
   Return r
 End
+Public Sub sbFrames_MouseDown()
+    wasrunning = isplaying
+    Try Print #inputplayps, "pause"  
+    Try Print #inputplayps, "speed_set 0"  
+End
+Public Sub sbFrames_MouseUp()
+    Try Print #inputplayps, "speed_set " & Replace(CStr(playspeed), ",", ".") 
+    If Not isplaying Then Try Print #inputplayps, "pause"  
+    
+End
 
 
-
+Public Sub sbFrames_MouseMove()
+  Dim f As Float
+  Dim b As Boolean = False
+  Try b = b Or Mouse.Left
+  Try b = b Or Mouse.right
+  
+  If b Then
+     f = sbFrames.Value 
+     Try f = CFloat(ID_LENGTH) * CFloat(f / CFloat(sbFrames.MaxValue))
+     'Try f = 100.0 * CFloat(f) / CFloat(sbFrames.MaxValue)
+     'Print "FRAMENUM = " & sbFrames.value
+     If f > CFloat(ID_LENGTH) Then f = ID_LENGTH
+     Try Print #inputplayps, "set_property time_pos " & Replace(CStr(f), ",", ".") 
+     'Print "set_property time_pos " & Replace(CStr(f), ",", ".") 
+     Try Print #inputplayps, "frame_step"
+     '
+     'Try Print #inputplayps, "set_property percent_pos " & CStr(CInt(f))  
+     'Print "set_property percent_pos " & CStr(CInt(f)) 
+  Endif
+End
+Private wasrunning As Boolean = True

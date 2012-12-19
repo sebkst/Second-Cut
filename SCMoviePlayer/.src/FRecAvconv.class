@@ -187,7 +187,7 @@ Public Sub startRecording(mp4 As String)
   Me.oldme = []
   Me.$bShow = True
   Me.dimPlayVideo = Me.dimRecVideo
-  Me.prepareDwgMoviePlayer(True)
+  Me.prepareDwgMoviePlayer()
   
   gstreamerTrace = ""
   gstpscmd = ["gst-launch", "-v", "--gst-debug=0", "v4l2src", "device=" & Me.videodevice, "!", Me.recformat, "!", "v4l2loopback", "device=" & freevlb] 
