@@ -6,6 +6,9 @@ Private isplaying As Boolean = False
 Public isrecording As Boolean = False
 Public existingPlayer As Boolean = False
 
+Private inputplaypsfile As String
+Private inputplayps As Stream
+
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 Public recfile As String = "" ' = "/home/seb/Téléchargements/FL/sydneysabre/Second-Cut/f.flv"
 Public recdir As String = Conv$(User.home, Desktop.Charset, System.Charset)
@@ -23,7 +26,9 @@ Public dimRecVideo As Integer[] = [1280, 720]
 Const recFPS As Integer = 30
 Private VIDEO_FPS As Float = 30
 Private ID_LENGTH As Float
+Private TIME_POS As Float
 Private CURFRAME As Integer
+Private moveBackwards As Boolean = False
 
 Public dimPlayVideo As Integer[] = dimRecVideo
 Public videodevice As String = "/dev/video1"
@@ -179,7 +184,10 @@ Public Sub _new()
         Endif         
   Endif
  
+  
 End
+
+
 
 Public Sub prepareDwgMoviePlayer(forRec As Boolean)
 
@@ -194,6 +202,7 @@ End
 
 Public Sub runMPlayer(mp4 As String, speed As Float)
   
+  Dim playpscmd As String
   If Len(mp4) <= 0 Then Return
   
   dimPlayVideo = getDim(mp4)
@@ -203,11 +212,22 @@ Public Sub runMPlayer(mp4 As String, speed As Float)
   '  '.Enabled = FALSE
   Try playps.kill
   
+  Try inputplayps.Close()
+  Try Shell "rm -f -v " & inputplaypsfile Wait
+  
+  inputplaypsfile = Temp
+  Shell "rm -f -v " & inputplaypsfile Wait
+  inputplayps = Pipe inputplaypsfile For Write
+  
+  
   $bShow = True
   
   'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"
-  '  
-  playps = Shell "mplayer -vo xv -forceidx -identify -wid " & CStr(dwgMoviePlayer.Handle) & " -speed " & CStr(speed) & " " & Conv$(mp4, Desktop.Charset, System.Charset) For Read Write As "PlayProcess"
+  
+  playpscmd = "mplayer -vo xv -noframedrop -forceidx -identify -wid " & CStr(dwgMoviePlayer.Handle) & " -speed " & CStr(speed) 
+  playpscmd &= " -osdlevel 0 -input file=" & Conv$(inputplaypsfile, Desktop.Charset, System.Charset) 
+  playpscmd &= " " & Conv$(mp4, Desktop.Charset, System.Charset)
+  playps = Exec Split(playpscmd, " ", "", True) For Read Write As "PlayProcess"
   existingPlayer = True
   
   playspeed = speed
@@ -235,7 +255,15 @@ Public Sub PlayProcess_Read()
   
   'Print sdata
   s = Trim(sData)
-  
+  i = InStr(s, "ANS_")
+  If i > 0 Then Print Split(Mid(s, i), "\n")[0]        
+  i = InStr(s, "ANS_time_pos=")
+  If i > 0 Then     
+    ar = Split(Mid(s, i), "\n", "", True)   
+    ar = Split(ar[0], "=", "", True, False)
+    Try TIME_POS = CFloat(Trim(ar[1]))
+    If Not Error Then txtcmd.Text = ar[1]
+  Endif
   i = InStr(s, "V: ")
   If i > 0 Then     
     ar = Split(Mid(s, i), "\n", "", True)   
@@ -250,6 +278,7 @@ Public Sub PlayProcess_Read()
     sbFrames.Value = CURFRAME
     f = 0
     Try f = CFloat(Trim(ar[1]))
+    TIME_POS = f
     i = CInt(f) / 60
     txtcmd.Text = CStr(i) & ":" & Format(f - CFloat(60 * i), "00.0")
 
@@ -279,6 +308,9 @@ Public Sub PlayProcess_Read()
       If ID_LENGTH < 1 Then
         Try ID_LENGTH = CFloat(Trim(ar[1]))
       Endif
+      ' NOT IMPLEMENTED IN MPAYER
+      ' Print #inputplayps, "set_property length " & CStr(ID_LENGTH)
+      sbFrames.Enabled = True
       sbFrames.MaxValue = CInt(ID_LENGTH * VIDEO_FPS)
       CURFRAME = 0
       sbFrames.Value = 0
@@ -291,10 +323,11 @@ End
 
 Public Sub PlayProcess_Kill()
 
-  playps.Drop()
-  playps.Close()
+  Try playps.Drop()
+  Try playps.Close()
   
   timShow.Enabled = False
+  sbFrames.Enabled = False
   $bQuit = False
   $bShow = False
   dwgMoviePlayer.Hide
@@ -304,6 +337,10 @@ Public Sub PlayProcess_Kill()
   isplaying = False
   existingPlayer = False
 
+  Try inputplayps.Drop()
+  Try inputplayps.Close()
+  Try Shell "rm -f -v " & inputplaypsfile Wait
+
 End
 
 Public Sub StopMovie()
@@ -312,6 +349,7 @@ Public Sub StopMovie()
   If Not existingPlayer Then Return
   
   btnPlay.Background = Color.Yellow
+  Try Print #inputplayps, "quit"
   Try Print #playps, "q";
   If Error Then
     Try playps.Kill
@@ -396,25 +434,47 @@ Public Sub dwgMoviePlayer_MouseUp()
   If isrecording Then Return
   Timframes.Stop  
   txtcmd.Background = Color.Black
+  playspeed = 1
+  Try Print #inputplayps, "speed_set 1.0"
+  Try Print #inputplayps, "pause"
   
 End
 
 Public Sub dwgMoviePlayer_MouseMove()
 
-  Dim f As Float = Abs(Mouse.ScreenX - Me.screenX - dwgMoviePlayer.x - (dwgMoviePlayer.W / 2))
-  If isrecording Then Return
+ Dim f As Float = Abs(Mouse.ScreenX - Me.screenX - dwgMoviePlayer.x - (dwgMoviePlayer.W / 2))
+ If isrecording Then Return
   
   If (Mouse.ScreenX < Me.ScreenX) Or (Mouse.ScreenX > (Me.ScreenX + dwgMoviePlayer.W + dwgMoviePlayer.x)) Then Return
   If Not Mouse.Left Then Return
-  Timframes.Delay = CInt(99 + 700 - f * 2.0 * 700.0 / dwgMoviePlayer.W)
+  
+  If (Mouse.ScreenX - Me.screenX - dwgMoviePlayer.x - (dwgMoviePlayer.W / 2)) < 0 Then 
+    moveBackwards = True
+  Else
+     moveBackwards = False  
+  Endif
+  If moveBackwards Then
+     Timframes.Delay = CInt(600 - f * 2.0 * 200.0 / dwgMoviePlayer.W)
+     txtcmd.Text = "< " & txtcmd.Text  
+  Else
+     Timframes.Delay = CInt(99 + 700 - f * 2.0 * 700.0 / dwgMoviePlayer.W)
+  Endif
   txtcmd.Background = Color.HSV(240 + 200 * f / dwgMoviePlayer.W, 255, 255)
   
 End
 
+
 Public Sub Timframes_Timer()
-
-  Try Print #playps, "."; 
-
+  If moveBackwards Then
+    Try Print #inputplayps, "seek -0.5" '-1"
+  '  Try Print #inputplayps, "get_time_pos"
+'   Try Print #playps, ",";
+'    Try Print #playps, "t";
+'    Try Print #inputplayps, "pause"    
+ '   Try Print #inputplayps, "pause"    
+  Else
+    Try Print #playps, "."; 
+  Endif
 End
 
 Public Sub dwgMoviePlayer_MouseDown()
@@ -427,13 +487,18 @@ Public Sub dwgMoviePlayer_MouseDown()
   '  If (Mouse.x - (dwgMoviePlayer.W / 2)) < 0 Then Return
   
   f = Abs(Mouse.ScreenX - Me.screenX - dwgMoviePlayer.x - (dwgMoviePlayer.W / 2))
-  Timframes.Delay = CInt(99 + 700 - f * 2.0 * 700.0 / dwgMoviePlayer.W)
+  moveBackwards = (0 > (Mouse.ScreenX - Me.screenX - dwgMoviePlayer.x - (dwgMoviePlayer.W / 2))) 
+  If moveBackwards Then
+     Timframes.Delay = CInt(600 - f * 2.0 * 200.0 / dwgMoviePlayer.W)
+  Else
+     Timframes.Delay = CInt(99 + 700 - f * 2.0 * 700.0 / dwgMoviePlayer.W)
+  Endif
   txtcmd.Background = Color.HSV(240 + 200 * f / dwgMoviePlayer.W, 255, 255)
   
   Timframes.start()
   
-  If Not isplaying Then Timframes_Timer()  
-  If Not isplaying Then Return
+'  If Not isplaying Then Timframes_Timer()  
+'  If Not isplaying Then Return
   
   '  If playspeed < 0.3 Then Mouse.Move(btnPlayQuarter.x, btnPlayQuarter.y)
   '  If playspeed == 0.5 Then Mouse.Move(btnPlayHalf.x, btnPlayHalf.y)
@@ -441,23 +506,27 @@ Public Sub dwgMoviePlayer_MouseDown()
   '  If playspeed == 2 Then Mouse.Move(btnPlay2x.x, btnPlay2x.y)
   '  If playspeed > 3.9 Then Mouse.Move(btnPlay4x.x, btnPlay4x.y)
   
-  If isplaying Then
+'  If isplaying Then
     'If playspeed < 0.3 Then btnPlayQuarter.Value = Not btnPlayQuarter.Value
     'If playspeed == 0.5 Then btnPlayHalf.Value = Not btnPlayHalf.Value
     'If playspeed == 1 Then btnPlay.Value = Not btnPlay.Value
     'If playspeed == 2 Then btnPlay2x.Value = Not btnPlay2x.Value
     'If playspeed > 3.9 Then btnPlay4x.Value = Not btnPlay4x.Value
     
-    If (playspeed < 0.3) Then Print #playps, "}";
-    If (playspeed < 0.6) Then Print #playps, "}";
-    If (playspeed > 1.9) Then Print #playps, "{";
-    If (playspeed > 3.9) Then Print #playps, "{";
-    playspeed = 1
-    
+ '   If (playspeed < 0.3) Then Print #playps, "}";
+ '   If (playspeed < 0.6) Then Print #playps, "}";
+ '   If (playspeed > 1.9) Then Print #playps, "{";
+ '   If (playspeed > 3.9) Then Print #playps, "{";
+ '   playspeed = 1
+    If isplaying Then
+      playspeed = 0.17
+      Try Print #inputplayps, "speed_set 0.01"
+      Try Print #inputplayps, "pause"
+    Endif
     isplaying = False
     Timframes_Timer()
     
-  Endif
+  'Endif
   
 End
 
@@ -621,6 +690,8 @@ Public Sub afterStopRecording()
   
   Dim m As String
   Dim i As Integer = 0
+  Dim f As Float = 0
+  Dim ar As String[]  
   
   btnRec.Background = Color.Black
   btnSaveDir.Enabled = True
@@ -637,6 +708,18 @@ Public Sub afterStopRecording()
   Endif
 
   ID_LENGTH = 0
+  ar = Split(txtcmd.Text, " ", "", True)
+  If ar.Count == 2 Then
+     If Split(Trim(ar[1]), ":").Count == 3 Then
+        m = Trim(ar[1])
+        ar = Split(m, ":")
+        Try f = CFloat(ar[2])
+        Try f = f + 60 * CInt(ar[1])
+        Try f = f + 3600 * CInt(ar[0])
+        Print "just recorded : " & f & " seconds" 
+        ID_LENGTH = f        
+     Endif
+  Endif
 End
 
 Public Sub onbtnRec_Click()  
@@ -1112,4 +1195,6 @@ Public Sub join(ar As String[], Optional sep As String = " ") As String
   Next
   Return r
 End
+
+
 
