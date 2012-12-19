@@ -76,7 +76,7 @@ Print "default recordfomat"
 'Me.recformat = "video/x-raw-yuv,height=720,interlaced=false,pixel-aspect-ratio=1/1"
 ' this seems to give a 30 FPS, while is imposed in the caps it does not negotiate the format.
 'eeepc and sydney sabre
-Me.recformat = "video/x-raw-yuv,interlaced=false,pixel-aspect-ratio=1/1,framerate=30/1"
+Me.recformat = "video/x-raw-yuv,height=600,interlaced=false,pixel-aspect-ratio=1/1" ',framerate=30/1"
 
 Endif
 
@@ -188,7 +188,8 @@ Dim maxwait As Integer = 99
   'Print "sending: SIGUSR2 To the recording Process"
   'Shell "kill -INT " & Me.recps.Id Wait
   ' Print "sending: SIGINT To the recording Process"
-   Print #Me.recps, "q"
+  Try Print #Me.recps, "q"
+  If Error Then Try Me.recps.Kill()
 
   Try feedps.Kill
   ' kill gst
@@ -278,7 +279,7 @@ Public Sub startRecording(mp4 As String)
   Wend
   Sleep 0.3
 '  v4l2src device="/dev/video1" ! queue ! videoscale method=1 ! video/x-raw-yuv,width=320,height=240 !
-  feedpscmd = ["mplayer", "-wid", CStr(Me.getDwgMoviePlayerHandle()), "-input", "conf=/dev/null", "tv://", "-tv", "device=" & freevlb, "-ao", "null", "-framedrop", "-msglevel", "all=0"]
+  feedpscmd = ["mplayer", "-wid", CStr(Me.getDwgMoviePlayerHandle()), "-input", "conf=/dev/null", "tv://", "-tv", "device=" & freevlb, "-ao", "null", "-framedrop", "-msglevel", "all=0", "-vo", "xv"]
   Print Me.join(feedpscmd)  
   feedps = Shell Me.join(feedpscmd) & " 2>&1" For Read Write As "feedmplayerps"
 '  feedps = Exec feedpscmd For Read Write As "feedmplayerps"
@@ -300,12 +301,25 @@ Public Sub startRecording(mp4 As String)
 End
 'seems not to be called why ??????????
 Public Sub recProcess_Kill()
+Dim b As Boolean = False
+  b = InStr(recprocessError, "[NULL") > 0
+  b = b Or (InStr(recprocessError, "ERROR") > 0)
+  b = b Or (InStr(recprocessError, "ERREUR") > 0)
+  b = b Or (InStr(recprocessError, "Cannot find") > 0)
+  b = b Or (InStr(recprocessError, "Invalid argument") > 0)
+  b = b Or (InStr(recprocessError, "Unknown") > 0)
+  b = b Or (InStr(recprocessError, "Failed to") > 0)
+  
+  If b Then  
+     Message.Error("ERROR in RECORDING: verify your parameters, test the commandline... \n" & recprocessError)   
+     Print "recprocess Error : "
+     Print recprocessError
+     Me.btnKill_click()
+  Endif
+    
   Print "Stop Recording"
   Me.isrecording = False   
   Me.afterStopRecording()
-  'If InStr(recprocessError, "ERROR") > 0 Or InStr(recprocessError, "ERREUR") > 0 Then
-  '   Message.Error("ERROR in RECORDING: verify your parameters "   
-  'Endif
   
 End
 
