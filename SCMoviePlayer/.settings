@@ -10,16 +10,13 @@ Count=0
 
 [OpenFile]
 File[1]=".src/FMoviePlayer.form"
-Active=2
-File[2]=".src/FMoviePlayer.class:537.2"
-File[3]=".src/FRecGuvcview.class:9.98"
-File[4]=".src/FRecGstreamer.class:307.0"
+File[2]=".src/FMoviePlayer.class:190.0"
+File[3]=".src/FRecGuvcview.class:74.0"
+Active=4
+File[4]=".src/FRecGstreamer.class:259.0"
 File[5]=".src/FRecGstDucati.class:9.4"
 File[6]=".src/Main.module:23.10"
-File[7]=".src/FRecAvconv.class:175.0"
-File[8]=".src/Fdummyvlc.class:44.37"
-File[9]=".src/FRecMEncoderFileMplayer.class:53.0"
-Count=9
+Count=6
 
 [Watches]
 Count=0
