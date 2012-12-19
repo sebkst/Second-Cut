@@ -26,7 +26,7 @@ Private ID_LENGTH As Float
 Private CURFRAME As Integer
 
 Public dimPlayVideo As Integer[] = dimRecVideo
-Public videodevice As String = "/dev/video0"
+Public videodevice As String = "/dev/video1"
 Private playspeed As Float = 1
 Private $bQuit As Boolean
 Public $bShow As Boolean
@@ -636,7 +636,7 @@ Public Sub afterStopRecording()
     Print "recorded :  " & m  
   Endif
 
-  Me.ID_LENGTH = 0
+  ID_LENGTH = 0
 End
 
 Public Sub onbtnRec_Click()  
