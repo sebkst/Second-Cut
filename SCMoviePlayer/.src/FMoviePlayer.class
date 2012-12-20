@@ -297,17 +297,20 @@ Public Sub PlayProcess_Read()
     If i > 0 Then 
       ar = Split(Mid(s, i), "\n", "", True)   
       ar = Split(ar[0], "=", "", True, False)
+      f = 0
       Try f = CFloat(Trim(ar[1]))
-      If f <= 30.9 And f > 0.0 Then VIDEO_FPS = f
+      If f <= 40 And f > 1.0 Then VIDEO_FPS = f
        
     Endif
     i = InStr(s, "ID_LENGTH=")
     If i > 0 Then 
       ar = Split(Mid(s, i), "\n", "", True)   
       ar = Split(ar[0], "=", "", True, False)
-      If ID_LENGTH < 1 Then
-        Try ID_LENGTH = CFloat(Trim(ar[1]))
-      Endif
+      Try ID_LENGTH = CFloat(Trim(ar[1]))
+      
+     ' If ID_LENGTH < 1 Then
+     '   Try ID_LENGTH = CFloat(Trim(ar[1]))
+     ' Endif
       ' NOT IMPLEMENTED IN MPAYER
       ' Print #inputplayps, "set_property length " & CStr(ID_LENGTH)
       sbFrames.Enabled = True
@@ -466,7 +469,7 @@ End
 
 Public Sub Timframes_Timer()
   If moveBackwards Then
-    Try Print #inputplayps, "seek -0.5" '-1"
+    Try Print #inputplayps, "seek -1" '-0.5" '-1"
   '  Try Print #inputplayps, "get_time_pos"
 '   Try Print #playps, ",";
 '    Try Print #playps, "t";
@@ -1221,7 +1224,7 @@ Public Sub sbFrames_MouseMove()
      If f > CFloat(ID_LENGTH) Then f = ID_LENGTH
      Try Print #inputplayps, "set_property time_pos " & Replace(CStr(f), ",", ".") 
      'Print "set_property time_pos " & Replace(CStr(f), ",", ".") 
-     Try Print #inputplayps, "frame_step"
+ '    Try Print #inputplayps, "frame_step"
      '
      'Try Print #inputplayps, "set_property percent_pos " & CStr(CInt(f))  
      'Print "set_property percent_pos " & CStr(CInt(f)) 

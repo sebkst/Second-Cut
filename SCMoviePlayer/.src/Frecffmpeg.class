@@ -86,8 +86,8 @@ Print "default recordcommand"
  ' 
  Me.reccmd = "ffmpeg -f video4linux2 -i $(VIDEODEVICE) $(FILE)"
 
- ' in MPEG with audio
- Me.reccmd = "ffmpeg -f alsa -i default -f v4l2 -i $(VIDEODEVICE) $(FILE)"
+ ' in MPEG-2 with audio
+ Me.reccmd = "ffmpeg -f alsa -i default -f v4l2 -i $(VIDEODEVICE) -bf 1 -c:v mpeg2video $(FILE)"
  'in 20 minutes (from 2fps) get back to 26 FPS
 Endif
 
@@ -173,7 +173,7 @@ Endif
 End
 
 Public Sub StopRecording()
-
+Dim fixindexps As Process
 Dim i As Integer
 Dim maxwait As Integer = 99
   ' kill the recps (mencoder), (done in parents)
@@ -199,7 +199,7 @@ Dim maxwait As Integer = 99
   i = 0
   ' Kill feedps
   '  While i < maxwait And 0 >= InStr(recprocessError & recprocessTrace, "muxing overhead")
-       Wait 0.9
+  Wait 0.5
   '      i = i + 1
   '     Print "*" 
   '  Wend
@@ -207,11 +207,18 @@ Dim maxwait As Integer = 99
   Try Me.recps.Kill
   Try Shell "kill -9 " & Me.recps.Id 
   Print "RECORDER killed"
+
+  'reconstruct the index
+  Shell "mv -v " & Quote(Me.recfile) & " /dev/shm/tmp.mpg" Wait
+  fixindexps = Exec ["mencoder", "/dev/shm/tmp.mpg", "-msglevel", "0", "-forceidx", "-ovc", "copy", "-oac", "copy", "-o", Me.recfile]
+  
   Print recprocessTrace
   Print "--------------"
   Print recprocessError 
   Print "--------------"
-
+  
+  
+  
   Try Shell "kill -INT " & gstps.Id 
   Print "gstreamer INT"
   
@@ -226,12 +233,22 @@ Dim maxwait As Integer = 99
     Endif
     i = i + 1
   Wend
-  
   Try gstps.Kill
   Try Shell "kill -9 " & gstps.Id 
   Print "gstreamer killed"
   Print gstreamerTrace
   Print "--------------"
+
+  Try i = fixindexps.State
+  While i == Process.Running
+    
+    Wait 0.5
+    Print "^";
+    Me.text = "WAIT " & Me.Text
+    Try i = fixindexps.State
+    If Error Then Break
+  Wend
+  Me.Text = Replace(Me.Text, "WAIT ", "")
 
   Me.isrecording = False   
   Me.afterStopRecording()
