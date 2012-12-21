@@ -15,6 +15,7 @@
 
 
 Inherits FMoviePlayer
+'Inherits FMPSLIDER
 
 'no use of playps.
 
@@ -87,7 +88,11 @@ Print "default recordcommand"
  Me.reccmd = "ffmpeg -f video4linux2 -i $(VIDEODEVICE) $(FILE)"
 
  ' in MPEG-2 with audio
- Me.reccmd = "ffmpeg -f alsa -i default -f v4l2 -i $(VIDEODEVICE) -bf 1 -c:v mpeg2video $(FILE)"
+' Me.reccmd = "ffmpeg -f alsa -i default -isync -f v4l2 -i $(VIDEODEVICE) -bf 1 -c:v mpeg2video $(FILE)"
+ Me.reccmd = "ffmpeg -shortest -f alsa -i default -itsoffset 00:00:00 -ab 128k -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -me_method epzs -r 29.97 -g 45 -bf 2 -trellis 2 -cmp 2 -subcmp 2 -b:v 2500k -bt 300k -f vob $(FILE)"
+  '"-async 1 -acodec mp2 -ab 192k -isync -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -me_method epzs -r 29.97 -g 45 -bf 2 -trellis 2 -cmp 2 -subcmp 2 -b:v 2500k -bt 300k -f vob $(FILE)"
+' -itsoffset 00:00:00 -acodec ac3
+
  'in 20 minutes (from 2fps) get back to 26 FPS
 Endif
 
@@ -210,7 +215,9 @@ Dim maxwait As Integer = 99
 
   'reconstruct the index
   Shell "mv -v " & Quote(Me.recfile) & " /dev/shm/tmp.mpg" Wait
-  fixindexps = Exec ["mencoder", "/dev/shm/tmp.mpg", "-msglevel", "0", "-forceidx", "-ovc", "copy", "-oac", "copy", "-o", Me.recfile]
+  fixindexps = Exec ["mencoder", "/dev/shm/tmp.mpg", "-msglevel", "all=0", "-forceidx", "-ovc", "copy", "-oac", "copy", "-o", Me.recfile]
+  Print Me.join(["mencoder", "/dev/shm/tmp.mpg", "-msglevel", "all=0", "-forceidx", "-ovc", "copy", "-oac", "copy", "-o", Me.recfile])
+  
   
   Print recprocessTrace
   Print "--------------"
@@ -278,14 +285,14 @@ Public Sub startRecording(mp4 As String)
   gstreamerTrace = ""
   gstreamerError = ""
   gstpscmd = ["gst-launch", "-v", "v4l2src", "device=" & Me.videodevice, "!", Me.recformat, "!", "v4l2loopback", "device=" & freevlb] 
-  Print Me.join(gstpscmd)  
+  Print "RUN: " & Me.join(gstpscmd)  
   gstps = Exec gstpscmd For Read As "gstreamer"
  ' gstps = Shell Me.join(gstpscmd) & " 2>&1" For Read As "gstreamer"
   isStreaming = True
   
   While 0 >= InStr(gstreamerTrace, "GstSystemClock")
     Wait 0.3
-    Print "."
+    Print "waiting for the stream to stabilize"
     If InStr(gstreamerError, "ERROR") > 0 Or InStr(gstreamerError, "ERREUR") > 0 Then
        Message.Error("ERROR : can not access the device to stream to v4l2loopback " & gstreamerError)
        StopRecording()
@@ -297,14 +304,14 @@ Public Sub startRecording(mp4 As String)
   Sleep 0.3
 '  v4l2src device="/dev/video1" ! queue ! videoscale method=1 ! video/x-raw-yuv,width=320,height=240 !
   feedpscmd = ["mplayer", "-wid", CStr(Me.getDwgMoviePlayerHandle()), "-input", "conf=/dev/null", "tv://", "-tv", "device=" & freevlb, "-ao", "null", "-framedrop", "-msglevel", "all=0", "-vo", "xv"]
-  Print Me.join(feedpscmd)  
+  Print "RUN: " & Me.join(feedpscmd)  
   feedps = Shell Me.join(feedpscmd) & " 2>&1" For Read Write As "feedmplayerps"
 '  feedps = Exec feedpscmd For Read Write As "feedmplayerps"
 
 
   r = Me.formatReccmd(Me.reccmd, mp4, Me.dimRecVideo, freevlb)
   'Sleep 2.5
-  Print r  
+  Print "RUN: " & r  
   recprocessError = ""
   recprocessTrace = ""
 '  Me.recps = Shell r For Read Write As "RecProcess"
@@ -370,7 +377,7 @@ End
 'End
 
 Public Sub gstreamer_Error(Err As String)
-  Print "EEEEEERRRRRRRRRRR GSTREAMER : " & Err
+  Print "ERR GSTREAMER : " & Err
   gstreamerError &= err
 End
 Public Sub recProcess_Error(Err As String)
@@ -387,5 +394,5 @@ Public Sub recProcess_Error(Err As String)
   Endif
 End
 Public Sub PlayProcess_Error(Err As String)
-  Print "EEEEEERRRRRRRRRRR GENERAL " & Err
+  Print "ERR mplayer " & Err
 End
