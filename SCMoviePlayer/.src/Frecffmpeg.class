@@ -84,12 +84,13 @@ Endif
 If Len(Me.reccmd) <= 0 Then   
 Print "default recordcommand"
  ' record only video in MPEG-one
- ' 
- Me.reccmd = "ffmpeg -f video4linux2 -i $(VIDEODEVICE) $(FILE)"
+ '  Me.reccmd = "ffmpeg -f video4linux2 -i $(VIDEODEVICE) $(FILE)"
 
  ' in MPEG-2 with audio
 ' Me.reccmd = "ffmpeg -f alsa -i default -isync -f v4l2 -i $(VIDEODEVICE) -bf 1 -c:v mpeg2video $(FILE)"
- Me.reccmd = "ffmpeg -shortest -f alsa -i default -itsoffset 00:00:00 -ab 128k -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -me_method epzs -r 29.97 -g 45 -bf 2 -trellis 2 -cmp 2 -subcmp 2 -b:v 2500k -bt 300k -f vob $(FILE)"
+ 'too slow Me.reccmd = "ffmpeg -shortest -f alsa -i default -itsoffset 00:00:00 -ab 128k -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -me_method epzs -r 29.97 -g 45 -bf 2 -trellis 2 -cmp 2 -subcmp 2 -b:v 2500k -bt 300k -f vob $(FILE)"
+  Me.reccmd = "ffmpeg -shortest -f alsa -i default -itsoffset 00:00:00 -ab 128k -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -bf 2 -b:v 2500k -bt 300k $(FILE)"
+ 
   '"-async 1 -acodec mp2 -ab 192k -isync -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -me_method epzs -r 29.97 -g 45 -bf 2 -trellis 2 -cmp 2 -subcmp 2 -b:v 2500k -bt 300k -f vob $(FILE)"
 ' -itsoffset 00:00:00 -acodec ac3
 
@@ -214,9 +215,9 @@ Dim maxwait As Integer = 99
   Print "RECORDER killed"
 
   'reconstruct the index
-  Shell "mv -v " & Quote(Me.recfile) & " /dev/shm/tmp.mpg" Wait
-  fixindexps = Exec ["mencoder", "/dev/shm/tmp.mpg", "-msglevel", "all=0", "-forceidx", "-ovc", "copy", "-oac", "copy", "-o", Me.recfile]
-  Print Me.join(["mencoder", "/dev/shm/tmp.mpg", "-msglevel", "all=0", "-forceidx", "-ovc", "copy", "-oac", "copy", "-o", Me.recfile])
+  Shell "mv -v " & Quote(Me.recfile) & " " & Quote(Me.recfile & "0") Wait
+  fixindexps = Exec ["mencoder", Me.recfile & "0", "-msglevel", "all=0", "-forceidx", "-ovc", "copy", "-oac", "copy", "-o", Me.recfile]
+  Print "RUN: " & Me.join(["mencoder", Me.recfile & "0", "-msglevel", "all=0", "-forceidx", "-ovc", "copy", "-oac", "copy", "-o", Me.recfile], " ")
   
   
   Print recprocessTrace
@@ -247,16 +248,18 @@ Dim maxwait As Integer = 99
   Print "--------------"
 
   Try i = fixindexps.State
-  While i == Process.Running
+  If Not Error Then 
+    While i == Process.Running
     
-    Wait 0.5
-    Print "^";
-    Me.text = "WAIT " & Me.Text
-    Try i = fixindexps.State
-    If Error Then Break
-  Wend
-  Me.Text = Replace(Me.Text, "WAIT ", "")
-
+     Wait 0.9
+     Print "^";
+     Me.text = "WAIT " & Me.Text
+     Try i = fixindexps.State
+     If Error Then Break
+    Wend
+    Me.Text = Replace(Me.Text, "WAIT ", "")
+  Endif
+  Shell "rm -f -v " & Quote(Me.recfile & "0") Wait
   Me.isrecording = False   
   Me.afterStopRecording()
 '  Print "gstreamer : " & gstps.State

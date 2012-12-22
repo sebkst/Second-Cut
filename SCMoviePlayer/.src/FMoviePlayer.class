@@ -640,7 +640,7 @@ End
 
 Public Sub btnKill_Click()
 
-Shell "sleep 9s && killall -v -KILL mplayer gst-launch gst-launch-0.10 avconv" 
+Shell "sleep 5s && killall -v -KILL mplayer gst-launch gst-launch-0.10 avconv" 
 If isrecording Then Me.Stoprecording()  
 If existingPlayer Then Me.StopMovie() 
     

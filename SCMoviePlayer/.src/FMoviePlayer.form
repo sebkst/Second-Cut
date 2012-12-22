@@ -100,8 +100,9 @@
         }
         { btnKill Button
           MoveScaled(23,0,5,5)
+          Background = &H000000&
           ToolTip = ("stop the movie")
-          Picture = Picture["icon:/small/eject"]
+          Picture = Picture["icon:/small/warning"]
         }
         { Labelvd Label
           MoveScaled(39,0,13,5)
