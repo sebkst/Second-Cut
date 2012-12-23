@@ -3,7 +3,21 @@
 
 
 
-
+Public Sub join(ar As String[], Optional sep As String = " ") As String
+  
+  Dim r As String = ""
+  Dim m As String
+  
+  For Each m In ar
+    If Len(r) <= 0 Then
+      r = m
+    Else
+      r = r & sep & m
+    Endif    
+  Next
+  Return r
+  
+End
 
 
 

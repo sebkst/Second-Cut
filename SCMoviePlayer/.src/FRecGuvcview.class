@@ -8,6 +8,7 @@ Public Sub _new()
   If Len(m) <= 7 Then Message.Error("Error : GuvcView was not found.\nPlease install GuvcView to use this software.\nsudo apt-get install guvcview", "Exit")
   If Len(m) <= 7 Then Quit 
   Me.reccmd = "guvcview -p 1 --device=$(VIDEODEVICE) --size=$(WIDTH)x$(HEIGHT) --video=$(FILE) --exit_on_close"
+  If Exist(Me.videodevice) Then Me.btnRec.Enabled = True
 
   
 End 
@@ -36,7 +37,6 @@ Public Sub startRecording(mp4 As String)
 
   Me.hideDwgMoviePlayerForRecording()
   Me.Move(0, Screen.AvailableHeight - 50, Screen.AvailableWidth, 50)
-  Me.$bShow = True
   Me.Stacking = Window.Above
   
   'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"

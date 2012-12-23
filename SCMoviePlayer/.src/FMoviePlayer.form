@@ -73,6 +73,7 @@
         { !btnRec Button
           MoveScaled(62,0,7,7)
           #Public = True
+          Enabled = False
           Background = &H000000&
           Foreground = &HFFFFFF&
           ToolTip = ("record")

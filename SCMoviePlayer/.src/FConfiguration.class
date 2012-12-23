@@ -1,0 +1,108 @@
+' Gambas class file
+
+Public mainForm As FMoviePlayer 
+Public rbcam As RadioButton[]
+
+
+Public Sub setup(f As FMoviePlayer) 
+  Dim cams As String[]
+  Dim i As Integer
+  Dim r As RadioButton
+  
+  mainForm = f
+ 
+  DirChooser1.value = mainForm.recdir
+  
+  cams = getcameras()
+  rbcam = New RadioButton[cams.Count]
+  
+  For i = 0 To cams.Max
+    rbcam[i] = New RadioButton(frcam)
+    rbcam[i].AutoResize = True
+    rbcam[i].Text = Trim(Split(cams[i], "\n")[1])
+    rbcam[i].Tooltip = Trim(Split(cams[i], "\n")[0])
+    If mainform.videodevice == rbcam[i].Tooltip Then
+      rbcam[i].Value = True
+    Else
+      rbcam[i].Value = False
+    Endif
+    rbcam[i].move(14, 20 + i * (rbcam[i].h + 3))
+  Next
+ ''' If rbcam[cams.Max].y + rbcam[cams.Max].H + 20 > frcam.h Then frcam.h = 20 + rbcam[cams.Max].y + rbcam[cams.Max].H 
+  
+  For Each r In [vga, svga, sxga, hd720]
+    
+    If 0 < InStr(mainform.recformat, "height=" & Split(r.Text, "x")[1]) Then
+      r.Value = True
+    Else
+      r.Value = False
+    Endif
+
+  Next
+    
+End
+
+
+Public Sub ButtonCancel_Click()
+
+Me.Close()  
+
+End
+
+Public Sub ButtonOK_Click()
+
+    
+  Dim r As RadioButton
+  Dim ar As String[] = Split(mainForm.recformat, ",")
+  Dim i As Integer
+  
+  'Me.enabled = True  
+  Try mainForm.recdir = DirChooser1.selectedPath
+  For Each r In rbcam
+    If r.Value Then 
+      mainForm.videodevice = r.Tooltip
+      mainForm.btnRec.Enabled = True
+    Endif
+  Next
+  
+  For Each r In [vga, svga, hd720, sxga]
+    If r.Value Then
+      Try mainForm.dimRecVideo = [CInt(Trim(Split(r.Text, "x")[0])), CInt(Trim(Split(r.Text, "x")[1]))] 
+      For i = 0 To ar.Max
+        If InStr(Lower(ar[i]), "height=") > 0 Then ar[i] = "height=" & Trim(Split(r.Text, "x")[1])
+      Next
+    Endif  
+  Next
+  mainForm.recformat = Main.join(ar, ",")
+  Try mainForm.seekBackwards = CFloat(Trim(TextBoxSeekback.Text))
+    
+  Me.Close()
+
+End
+
+
+Public Sub getcameras() As String[]
+  
+  Dim m As String
+  Dim r As String
+  Dim c As String
+  Dim cams As New String[]
+  Dim ret As New String[]
+  
+  Shell "ls -1 /dev/video*" To m 
+  cams = Split(Trim(m), "\n")
+  For Each c In cams
+    Shell "v4l-info " & c & " | grep -i -e '[ ]*driver[ ]*:' | cut -d: -f2- " To m 
+    m = Trim(Replace(Trim(m), "\"", ""))
+    m = Replace(m, " ", "")
+    'do not list the loopback devices
+    If Lower(m) == "v4l2loopback" Then Continue
+    r = Trim(c)
+    Shell "v4l-info " & c & " | grep -i -e '[ ]*card[ ]*:' | cut -d: -f2- " To m 
+    r = r & "\n" & Trim(Replace(Trim(m), "\"", ""))
+    ret.push(r)
+'    If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "found: " & r
+  Next
+  Return ret
+  
+End

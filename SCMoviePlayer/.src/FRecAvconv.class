@@ -66,6 +66,7 @@ Public Sub _new()
   ' ' in mp4
   ' avconv -f video4linux2 -i /dev/video4 -f alsa -itsoffset 100 -i hw:0 -map 1:a -map 0:v -c:v libx264 -crf 23 -preset veryfast -c:a libvo_aacenc -b:a 128k /tmp/out.mp4
   ' avconv -f video4linux2 -i /dev/video4 -f alsa -itsoffset 100 -i hw:0 -async 1 -map 1:a -map 0:v -c:v libx264 -crf 23 -preset superfast -b:a 128k /tmp/out.mp4
+   If Exist(Me.videodevice) Then Me.btnRec.Enabled = True
 
 End 
 
@@ -185,15 +186,14 @@ Public Sub startRecording(mp4 As String)
   If Len(mp4) <= 0 Then Return
   
   Me.oldme = []
-  Me.$bShow = True
   Me.dimPlayVideo = Me.dimRecVideo
   Me.prepareDwgMoviePlayer()
   
   gstreamerTrace = ""
   gstpscmd = ["gst-launch", "-v", "--gst-debug=0", "v4l2src", "device=" & Me.videodevice, "!", Me.recformat, "!", "v4l2loopback", "device=" & freevlb] 
-  Print Me.join(gstpscmd)  
+  Print Main.join(gstpscmd)  
 ' gstps = Exec gstpscmd For Read As "gstreamer"
-  gstps = Shell Me.join(gstpscmd) & " 2>&1" For Read As "gstreamer"
+  gstps = Shell Main.join(gstpscmd) & " 2>&1" For Read As "gstreamer"
   isStreaming = True
   
   Sleep 3
@@ -206,8 +206,8 @@ Public Sub startRecording(mp4 As String)
   
 '  v4l2src device="/dev/video1" ! queue ! videoscale method=1 ! video/x-raw-yuv,width=320,height=240 !
   feedpscmd = ["mplayer", "-wid", CStr(Me.getDwgMoviePlayerHandle()), "-input", "conf=/dev/null", "tv://", "-tv", "device=" & freevlb, "-ao", "null"]
-  Print Me.join(feedpscmd)  
-  feedps = Shell Me.join(feedpscmd) & " 2>&1" For Read Write As "feedmplayerps"
+  Print Main.join(feedpscmd)  
+  feedps = Shell Main.join(feedpscmd) & " 2>&1" For Read Write As "feedmplayerps"
 '  feedps = Exec feedpscmd For Read Write As "feedmplayerps"
 
 

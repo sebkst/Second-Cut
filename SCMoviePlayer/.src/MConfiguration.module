@@ -1,0 +1,134 @@
+' Gambas module file
+
+' this module file contains 2 main methods :
+' one to get the parameters from a file and write them down in a FMoviePayer
+' another method to save the actual parameters to a file
+
+
+Public Sub saveconfig(f As FMoviePlayer, Optional configurationFile As String = "")
+  
+  Dim c As File
+  Dim m As String
+  Dim ml As New String[]
+  Dim i As Integer
+  
+  If Len(configurationFile) <= 0 Then configurationFile = f.configurationFile
+  
+  Try c = Open configurationFile For Read
+  If Not Error Then 
+    For Each m In c.Lines
+      ml.Push(m)
+    Next
+    c.Close
+    For i = 0 To ml.Max
+      If InStr(ml[i], Object.Class(f).Name & ".videodevice=") == 1 Then ml[i] = Object.Class(f).Name & ".videodevice=" & Quote(f.videodevice)
+      If InStr(ml[i], Object.Class(f).Name & ".saveto=") == 1 Then ml[i] = Object.Class(f).Name & ".saveto=" & Quote(f.recdir)
+      If InStr(ml[i], Object.Class(f).Name & ".recordcommand=") == 1 Then ml[i] = Object.Class(f).Name & ".recordcommand=" & Quote(f.reccmd)
+      If InStr(ml[i], Object.Class(f).Name & ".recordformat=") == 1 Then ml[i] = Object.Class(f).Name & ".recordformat=" & Quote(f.recformat)
+      If InStr(ml[i], Object.Class(f).Name & ".lastplayed=") == 1 Then ml[i] = Object.Class(f).Name & ".lastplayed=" & Quote(f.recfile)
+      If InStr(ml[i], Object.Class(f).Name & ".geometry=") == 1 Then ml[i] = Object.Class(f).Name & ".geometry=" & CStr(f.w) & "x" & CStr(f.H) & "+" & CStr(f.ScreenX) & "+" & CStr(f.screenY)
+      If InStr(ml[i], Object.Class(f).Name & ".playcommand=") == 1 Then ml[i] = Object.Class(f).Name & ".playcommand=" & Quote(f.playcmd)
+      If InStr(ml[i], Object.Class(f).Name & ".recordsize=") == 1 Then ml[i] = Object.Class(f).Name & ".recordsize=" & CStr(f.dimRecVideo[0]) & "x" & CStr(f.dimRecVideo[1])
+      If InStr(ml[i], Object.Class(f).Name & ".seekbackwards=") == 1 Then ml[i] = Object.Class(f).Name & ".seekbackwards=" & CStr(f.seekbackwards)
+      
+    Next
+    m = "\n" & Main.join(ml, "\n")
+  Else
+    m = ""
+  Endif  
+  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".videodevice=") Then m &= "\n" & Object.Class(f).Name & ".videodevice=" & Quote(f.videodevice)
+  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".saveto=") Then m &= "\n" & Object.Class(f).Name & ".saveto=" & Quote(f.recdir)
+  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".recordcommand=") Then m &= "\n" & Object.Class(f).Name & ".recordcommand=" & Quote(f.reccmd)
+  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".recordformat=") Then m &= "\n" & Object.Class(f).Name & ".recordformat=" & Quote(f.recformat)
+  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".lastplayed=") Then m &= "\n" & Object.Class(f).Name & ".lastplayed=" & Quote(f.recfile)
+  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".geometry=") Then m &= "\n" & Object.Class(f).Name & ".geometry=" & CStr(f.w) & "x" & CStr(f.H) & "+" & CStr(f.ScreenX) & "+" & CStr(f.screenY)
+  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".playcommand=") Then m &= "\n" & Object.Class(f).Name & ".playcommand=" & Quote(f.playcmd)
+  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".recordsize=") Then m &= "\n" & Object.Class(f).Name & ".recordsize=" & CStr(f.dimRecVideo[0]) & "x" & CStr(f.dimRecVideo[1])
+  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".seekbackwards=") Then m &= "\n" & Object.Class(f).Name & ".seekbackwards=" & CStr(f.seekbackwards)
+  
+  Try c = Open configurationFile For Create
+  If Error Then
+    Print "ERROR, could not save the configuration File"
+    Return
+  Endif
+  ml = Split(Trim(m), "\n")
+  For Each m In ml
+    Print #c, m
+  Next
+  c.Close()
+  
+  If (f.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss]") & "saved configuration: "
+  If (f.dbg()) Then
+    Try c = Open configurationFile For Read
+    If Not Error Then 
+      For Each m In c.Lines
+        Print m
+      Next
+      c.Close
+    Endif
+  Endif
+  Print "configuration saved."
+  
+End
+
+
+Public Sub getconfig(f As FMoviePlayer, Optional configurationFile As String = "")
+  
+  Dim m As String
+  Dim s As String
+  Dim c As File
+  
+  If Len(configurationFile) <= 0 Then configurationFile = f.configurationFile
+  
+  If (f.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss]") & "open configuration file"
+  
+  Try c = Open configurationFile For Read
+  If Error Then
+    Print "ERROR, could not open the configuration File"
+    Return
+  Endif
+  Print
+  For Each s In c.Lines
+    m = Trim(s)
+    If InStr(m, Object.Class(f).Name & ".videodevice=") == 1 Then f.videodevice = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, Object.Class(f).Name & ".saveto=") == 1 Then f.recdir = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, Object.Class(f).Name & ".recordcommand=") == 1 Then f.reccmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, Object.Class(f).Name & ".recordformat=") == 1 Then f.recformat = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, Object.Class(f).Name & ".lastplayed=") == 1 Then f.recfile = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, Object.Class(f).Name & ".playcommand=") == 1 Then f.playcmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, Object.Class(f).Name & ".seekbackwards=") == 1 Then f.seekbackwards = CFloat(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, Object.Class(f).Name & ".recordsize=") == 1 Then 
+      m = Trim(Mid(m, InStr(m, "=") + 1))
+      f.dimRecVideo = [1280, 720]
+      Try f.dimRecVideo[0] = CInt(Split(m, "x")[0]) 
+      Try f.dimRecVideo[1] = CInt(Split(m, "x")[1])
+      If Error Then Print "ERROR getting recordsize from configuration file"
+      If Error Then Continue
+      f.dimPlayVideo = f.dimRecVideo
+    Endif
+    If InStr(m, Object.Class(f).Name & ".geometry=") == 1 Then 
+      m = Trim(Mid(m, InStr(m, "=") + 1))
+      f.geom = [800, 800, 0, 0] ' format = WxH+x+y
+      Try f.geom[0] = CInt(Split(m, "x")[0])
+      If Error Then Print "ERROR getting geometry from configuration file"
+      m = Split(m, "x")[1]
+      Try f.geom[1] = CInt(Split(m, "+")[0])
+      If Error Then Print "ERROR getting geometry from configuration file"
+      Try f.geom[2] = CInt(Split(m, "+")[1])
+      If Error Then Print "ERROR getting geometry from configuration file"
+      Try f.geom[3] = CInt(Split(m, "+")[2])
+      If Error Then Print "ERROR getting geometry from configuration file"
+    Endif
+    
+  Next
+  c.Close()
+  
+  If Not Exist(f.recfile) Or Not Exist(f.recdir) Or Not Exist(f.videodevice) Then Print "ERROR in the configration values read: check your configuration"
+  If Not Exist(f.recfile) Then Print "recfile not found"
+  If Not Exist(f.recdir) Then Print "recdir not found "
+  If Not Exist(f.videodevice) Then Print "videodevice not found"  
+  If Not Exist(f.recfile) Then f.recfile = ""
+  If Not Exist(f.recdir) Then f.recdir = ""
+  If Not Exist(f.videodevice) Then f.videodevice = ""
+  
+End

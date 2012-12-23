@@ -31,22 +31,15 @@ Private ID_LENGTH As Float
 Private TIME_POS As Float
 Private CURFRAME As Integer
 Private moveBackwards As Boolean = False
+Public seekBackwards As Float = 1
 
 Public dimPlayVideo As Integer[] = dimRecVideo
 Public videodevice As String = "/dev/video1"
 Private playspeed As Float = 1
-Private $bQuit As Boolean
-Public $bShow As Boolean
 Public oldme As Integer[]
 'old cursor
 Private omx As Integer
 Private omy As Integer
-
-Private dirch As DirChooser 
-Private rbcam As RadioButton[]
-Private rbformat As RadioButton[]
-Private txtreccmd As TextArea
-Private txtplaycmd As TextArea
 
 Private wasrunning As Boolean = True
 Const ALLOWEDKEYS As String = " srpqhfd" '' + key codes up down left right'
@@ -172,26 +165,26 @@ Public Sub _new()
   
   If Trim(Application.Args[1]) == "-config" Then
     If Exist(Conv$(Application.Args[2], Desktop.Charset, System.Charset)) Then
-      m = configurationFile
-      configurationFile = Conv$(Application.Args[2], Desktop.Charset, System.Charset)
-      getconfig()
-      configurationFile = User.Home & "/" & m
+      MConfiguration.getconfig(Me, Conv$(Application.Args[2], Desktop.Charset, System.Charset))
+      'WHERE TO SAVE THE CONFIG ??? 
+      'classically int the normal .secondcut
+      configurationFile = User.Home & "/" & configurationFile
     Else
       Print "ERROR : configuration file not found, changing for default"
       configurationFile = User.Home & "/" & configurationFile
       If Exist(Conv$(configurationFile, Desktop.Charset, System.Charset)) Then
-        getconfig()
+        MConfiguration.getconfig(Me, Me.configurationFile)
       Endif       
     Endif
   Else
     configurationFile = User.Home & "/" & configurationFile
     If Exist(Conv$(configurationFile, Desktop.Charset, System.Charset)) Then
-      getconfig()
+      MConfiguration.getconfig(Me, Me.configurationFile)
     Endif         
   Endif
   
   txtAbout.text = ""
-  '
+  'btnRec.Enabled = False
 End
 
 Public Sub prepareDwgMoviePlayer()
@@ -222,9 +215,7 @@ Public Sub runMPlayer(mp4 As String, speed As Float)
   inputplaypsfile = Temp
   Shell "rm -f -v " & inputplaypsfile Wait
   inputplayps = Pipe inputplaypsfile For Write
-  
-  $bShow = True
-    
+      
   realplaypscmd = Replace(playcmd, "$(WINDOWID)", CStr(dwgMoviePlayer.Handle))
   realplaypscmd = Replace(realplaypscmd, "$(SPEED)", Replace(CStr(speed), ",", ".")) 
   realplaypscmd = Replace(realplaypscmd, "$(INPUTFILE)", Conv$(inputplaypsfile, Desktop.Charset, System.Charset)) 
@@ -336,8 +327,6 @@ Public Sub PlayProcess_Kill()
   
   timShow.Enabled = False
   sbFrames.Enabled = False
-  $bQuit = False
-  $bShow = False
   dwgMoviePlayer.Hide
   txtAbout.Show
   If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "STOPPING PLAYER****************"
@@ -376,7 +365,7 @@ End
 Public Sub Form_Close()
   If isrecording Then Me.Stoprecording()  
   If existingPlayer Then Me.StopMovie() 
-  saveconfig()
+  MConfiguration.saveconfig(Me, Me.configurationFile)
 End
 
 Public Sub btnOpen_Click()
@@ -450,7 +439,7 @@ End
 Public Sub Timframes_Timer()
   
   If moveBackwards Then
-    Try Print #inputplayps, "seek -1" '-0.5" '-1"
+    Try Print #inputplayps, "seek -" & CStr(seekBackwards)
     Try Print #inputplayps, "pause"    
   Else
     Try Print #playps, "."; 
@@ -623,7 +612,7 @@ Public Sub txtcmd_KeyPress()
       Stop Event
       Return
     Else
-      Try Print #inputplayps, "seek -1.0" '-0.5"    
+      Try Print #inputplayps, "seek -" & CStr(seekBackwards)   
       isplaying = True
       '      Try Print #inputplayps, "pause"
       Stop Event
@@ -871,30 +860,6 @@ Public Sub btnPlayQuarter_KeyRelease()
   
 End
 
-Public Sub getcameras() As String[]
-  
-  Dim m As String
-  Dim r As String
-  Dim c As String
-  Dim cams As New String[]
-  Dim ret As New String[]
-  
-  Shell "ls -1 /dev/video*" To m 
-  cams = Split(Trim(m), "\n")
-  For Each c In cams
-    Shell "v4l-info " & c & " | grep -i -e '[ ]*driver[ ]*:' | cut -d: -f2- " To m 
-    m = Trim(Replace(Trim(m), "\"", ""))
-    m = Replace(m, " ", "")
-    If Lower(m) == "v4l2loopback" Then Continue
-    r = Trim(c)
-    Shell "v4l-info " & c & " | grep -i -e '[ ]*card[ ]*:' | cut -d: -f2- " To m 
-    r = r & "\n" & Trim(Replace(Trim(m), "\"", ""))
-    ret.push(r)
-    If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "found: " & r
-  Next
-  Return ret
-  
-End
 
 Public Sub setTxtcmdText(t As String)
   
@@ -956,253 +921,10 @@ End
 
 Public Sub btnSaveDir_Click()
   
-  Dim w As Window
-  Dim db As Button
-  Dim vb As VBox
-  Dim lbdirch As Label
-  Dim vbo As VBox
-  Dim hb As HBox
-  Dim cams As String[]
-  Dim frcam As Frame
-  Dim frformat As Frame
-  Dim formats As String[] = ["1280x1024", "1280x720", "800x600", "640x480"]
-  Dim hformats As String[] = ["height=1024", "height=720", "height=600", "height=480"]
-  Dim i As Integer
-  Dim lbrec As Label
-  Dim lbplay As Label
-  
-  w = New Window As "saverec"
-  w.Move(0, 0, 500, 500)
-  hb = New HBox(w)
-  hb.AutoResize = True
-  hb.Move(0, 0)
-  hb.Show
-  
-  vb = New VBox(hb)
-  vb.Move(0, 0, w.ClientW / 2, w.ClientH)
-  lbdirch = New Label(vb)
-  lbdirch.AutoResize = True
-  lbdirch.Padding = 9
-  lbdirch.Text = "Where to save the videos ?"
-  
-  dirch = New DirChooser(vb)
-  dirch.Resize(w.ClientW / 2, w.ClientH - lbdirch.h)
-  dirch.value = recdir
-  
-  vbo = New VBox(hb)
-  vbo.Move(0, 0, w.ClientW / 2, w.ClientH)
-  
-  frcam = New Frame(vbo)
-  frcam.resize(w.ClientW / 2, w.ClientH / 6)
-  frcam.Text = "Select video source"
-  cams = getcameras()
-  rbcam = New RadioButton[cams.Count]
-  For i = 0 To cams.Max
-    rbcam[i] = New RadioButton(frcam)
-    rbcam[i].AutoResize = True
-    rbcam[i].Text = Trim(Split(cams[i], "\n")[1])
-    rbcam[i].Tooltip = Trim(Split(cams[i], "\n")[0])
-    If videodevice == rbcam[i].Tooltip Then
-      rbcam[i].Value = True
-    Else
-      rbcam[i].Value = False
-    Endif
-    rbcam[i].move(9, 20 + i * rbcam[i].h)
-  Next
-  If rbcam[cams.Max].y + rbcam[cams.Max].H + 20 > frcam.h Then frcam.h = 20 + rbcam[cams.Max].y + rbcam[cams.Max].H 
-  lbrec = New Label(vbo)
-  lbrec.AutoResize = True
-  lbrec.Padding = 9
-  lbrec.text = "command line for recording"
-  lbrec.Tooltip = "$(FILE) is the video file to be recorded"
-  txtreccmd = New TextArea(vbo)
-  txtreccmd.Wrap = True
-  txtreccmd.Text = reccmd
-  txtreccmd.Resize(w.ClientW / 2, w.ClientH / 6)
-  lbplay = New Label(vbo)
-  lbplay.AutoResize = True
-  lbplay.Padding = 9
-  lbplay.text = "command line for playing"
-  lbplay.Tooltip = "$(FILE) is the video file to be played"
-  txtplaycmd = New TextArea(vbo)
-  ' see later 
-  txtplaycmd.Wrap = True
-  txtplaycmd.Text = playcmd
-  txtplaycmd.Resize(w.ClientW / 2, w.ClientH / 6)
-  
-  frformat = New Frame(vbo)
-  frformat.resize(w.ClientW / 2, w.ClientH / 6)
-  frformat.Text = "Select video format"
-  rbformat = New RadioButton[formats.Count]
-  For i = 0 To formats.max
-    rbformat[i] = New RadioButton(frformat)
-    rbformat[i].AutoResize = True
-    rbformat[i].Text = formats[i]
-    rbformat[i].Tooltip = hformats[i]
-    If 0 < InStr(recformat, rbformat[i].Tooltip) Then
-      rbformat[i].Value = True
-    Else
-      rbformat[i].Value = False
-    Endif
-    rbformat[i].move(9, 20 + i * rbformat[i].h)
-  Next
-  If rbformat[formats.Max].y + rbformat[formats.Max].H + 20 > frformat.h Then frformat.h = 20 + rbformat[formats.Max].y + rbformat[formats.Max].H 
-  
-  db = New Button(vbo) As "saverec_closebtn"
-  db.Resize(w.ClientW / 2, vbo.ClientH - frformat.H - frcam.H - lbdirch.h - txtreccmd.h - lbplay.h - txtplaycmd.h)
-  db.Text = "OK"
-  
-  w.ShowModal()
-  
-End
-
-Public Sub saverec_closebtn_click()
-  
-  Dim r As RadioButton
-  Dim ar As String[] = Split(recformat, ",")
-  Dim i As Integer
-  
-  Last.Window.Close()
-  'Me.enabled = True  
-  Try recdir = dirch.selectedPath
-  For Each r In rbcam
-    If r.Value Then 
-      videodevice = r.Tooltip
-    Endif
-  Next
-  
-  For Each r In rbformat
-    If r.Value Then
-      Try dimRecVideo = [CInt(Trim(Split(r.Text, "x")[0])), CInt(Trim(Split(r.Text, "x")[1]))] 
-      For i = 0 To ar.Max
-        If InStr(Lower(ar[i]), "height=") > 0 Then ar[i] = r.Tooltip 
-      Next
-    Endif  
-  Next
-  recformat = join(ar, ",")
-  reccmd = Replace(txtreccmd.Text, "\n", "")
-  playcmd = Replace(txtplaycmd.Text, "\n", "")
-  saveconfig()
-  
-End
-
-Public Sub getconfig()
-  
-  Dim m As String
-  Dim s As String
-  Dim c As File
-  
-  If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss]") & "open configuration file"
-  
-  Try c = Open configurationFile For Read
-  If Error Then
-    Print "ERROR, could not save the configuration File"
-    Return
-  Endif
-  Print
-  For Each s In c.Lines
-    m = Trim(s)
-    If InStr(m, Object.Class(Me).Name & ".videodevice=") == 1 Then videodevice = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(Me).Name & ".saveto=") == 1 Then recdir = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(Me).Name & ".recordcommand=") == 1 Then reccmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(Me).Name & ".recordformat=") == 1 Then recformat = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(Me).Name & ".lastplayed=") == 1 Then recfile = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(Me).Name & ".playcommand=") == 1 Then playcmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(Me).Name & ".recordsize=") == 1 Then 
-      m = Trim(Mid(m, InStr(m, "=") + 1))
-      dimRecVideo = [1280, 720]
-      Try dimRecVideo[0] = CInt(Split(m, "x")[0]) 
-      Try dimRecVideo[1] = CInt(Split(m, "x")[1])
-      If Error Then Print "ERROR getting recordsize from configuration file"
-      If Error Then Continue
-      dimPlayVideo = dimRecVideo
-    Endif
-    If InStr(m, Object.Class(Me).Name & ".geometry=") == 1 Then 
-      m = Trim(Mid(m, InStr(m, "=") + 1))
-      geom = [800, 800, 0, 0] ' format = WxH+x+y
-      Try geom[0] = CInt(Split(m, "x")[0])
-      If Error Then Print "ERROR getting geometry from configuration file"
-      m = Split(m, "x")[1]
-      Try geom[1] = CInt(Split(m, "+")[0])
-      If Error Then Print "ERROR getting geometry from configuration file"
-      Try geom[2] = CInt(Split(m, "+")[1])
-      If Error Then Print "ERROR getting geometry from configuration file"
-      Try geom[3] = CInt(Split(m, "+")[2])
-      If Error Then Print "ERROR getting geometry from configuration file"
-    Endif
-    
-  Next
-  c.Close()
-  
-  If Not Exist(recfile) Or Not Exist(recdir) Or Not Exist(videodevice) Then Print "ERROR in the configration values read"
-  If Not Exist(recfile) Then Print "recfile not found"
-  If Not Exist(recdir) Then Print "recdir not found "
-  If Not Exist(videodevice) Then Print "videodevice not found"  
-  If Not Exist(recfile) Then recfile = ""
-  If Not Exist(recdir) Then recdir = ""
-  If Not Exist(videodevice) Then videodevice = ""
-  
-End
-
-Public Sub saveconfig()
-  
-  Dim c As File
-  Dim m As String
-  Dim ml As New String[]
-  Dim i As Integer
-  
-  Try c = Open configurationFile For Read
-  If Not Error Then 
-    For Each m In c.Lines
-      ml.Push(m)
-    Next
-    c.Close
-    For i = 0 To ml.Max
-      If InStr(ml[i], Object.Class(Me).Name & ".videodevice=") == 1 Then ml[i] = Object.Class(Me).Name & ".videodevice=" & Quote(videodevice)
-      If InStr(ml[i], Object.Class(Me).Name & ".saveto=") == 1 Then ml[i] = Object.Class(Me).Name & ".saveto=" & Quote(recdir)
-      If InStr(ml[i], Object.Class(Me).Name & ".recordcommand=") == 1 Then ml[i] = Object.Class(Me).Name & ".recordcommand=" & Quote(reccmd)
-      If InStr(ml[i], Object.Class(Me).Name & ".recordformat=") == 1 Then ml[i] = Object.Class(Me).Name & ".recordformat=" & Quote(recformat)
-      If InStr(ml[i], Object.Class(Me).Name & ".lastplayed=") == 1 Then ml[i] = Object.Class(Me).Name & ".lastplayed=" & Quote(recfile)
-      If InStr(ml[i], Object.Class(Me).Name & ".geometry=") == 1 Then ml[i] = Object.Class(Me).Name & ".geometry=" & CStr(Me.w) & "x" & CStr(Me.H) & "+" & CStr(Me.ScreenX) & "+" & CStr(Me.screenY)
-      If InStr(ml[i], Object.Class(Me).Name & ".playcommand=") == 1 Then ml[i] = Object.Class(Me).Name & ".playcommand=" & Quote(playcmd)
-      If InStr(ml[i], Object.Class(Me).Name & ".recordsize=") == 1 Then ml[i] = Object.Class(Me).Name & ".recordsize=" & CStr(dimRecVideo[0]) & "x" & CStr(dimRecVideo[1])
-      
-    Next
-    m = "\n" & join(ml, "\n")
-  Else
-    m = ""
-  Endif  
-  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".videodevice=") Then m &= "\n" & Object.Class(Me).Name & ".videodevice=" & Quote(videodevice)
-  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".saveto=") Then m &= "\n" & Object.Class(Me).Name & ".saveto=" & Quote(recdir)
-  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".recordcommand=") Then m &= "\n" & Object.Class(Me).Name & ".recordcommand=" & Quote(reccmd)
-  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".recordformat=") Then m &= "\n" & Object.Class(Me).Name & ".recordformat=" & Quote(recformat)
-  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".lastplayed=") Then m &= "\n" & Object.Class(Me).Name & ".lastplayed=" & Quote(recfile)
-  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".geometry=") Then m &= "\n" & Object.Class(Me).Name & ".geometry=" & CStr(Me.w) & "x" & CStr(Me.H) & "+" & CStr(Me.ScreenX) & "+" & CStr(Me.screenY)
-  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".playcommand=") Then m &= "\n" & Object.Class(Me).Name & ".playcommand=" & Quote(playcmd)
-  If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".recordsize=") Then m &= "\n" & Object.Class(Me).Name & ".recordsize=" & CStr(dimRecVideo[0]) & "x" & CStr(dimRecVideo[1])
-  
-  Try c = Open configurationFile For Create
-  If Error Then
-    Print "ERROR, could not save the configuration File"
-    Return
-  Endif
-  ml = Split(Trim(m), "\n")
-  For Each m In ml
-    Print #c, m
-  Next
-  c.Close()
-  
-  If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss]") & "saved configuration: "
-  If (dbg()) Then
-    Try c = Open configurationFile For Read
-    If Not Error Then 
-      For Each m In c.Lines
-        Print m
-      Next
-      c.Close
-    Endif
-  Endif
-  Print "configuration saved."
+  Dim fconf As FConfiguration = New FConfiguration
+  fconf.setup(Me)
+  fconf.ShowModal()  
+  MConfiguration.saveconfig(Me, Me.configurationFile)
   
 End
 

@@ -34,7 +34,6 @@ Public Sub startRecording(mp4 As String)
 
   Me.hideDwgMoviePlayerForRecording()
   Me.Move(0, Screen.AvailableHeight - 50, Screen.AvailableWidth, 50)
-  Me.$bShow = True
   Me.Stacking = Window.Above
   
   Me.recfile = ""

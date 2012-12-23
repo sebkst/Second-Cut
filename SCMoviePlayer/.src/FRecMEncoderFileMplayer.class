@@ -24,6 +24,8 @@ Public Sub _new()
     Me.reccmd &= " driver=v4l2:width=$(WIDTH):height=$(HEIGHT):device=$(VIDEODEVICE):outfmt=yuy2:norm=0:forceaudio:alsa" 
     Me.reccmd &= " -nosound -ovc lavc -lavcopts vcodec=mpeg4:vbitrate=1800 -ffourcc xvid -oac mp3lame -lameopts cbr=128"
     Me.reccmd &= " -o $(FILE)"
+   
+    If Exist(Me.videodevice) Then Me.btnRec.Enabled = True
 
     
 End 

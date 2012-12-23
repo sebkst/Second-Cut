@@ -1,0 +1,59 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,78.5714,78.5714)
+  Resizable = False
+  Border = False
+  { DirChooser1 DirChooser
+    MoveScaled(1,4,41,75)
+  }
+  { Label1 Label
+    MoveScaled(0,0,41,4)
+    Padding = 9
+    Text = ("where to save the videos ?")
+  }
+  { frcam Frame
+    MoveScaled(43,1,35,31)
+    Text = ("select video source")
+  }
+  { frsize Frame
+    MoveScaled(43,32,35,19)
+    ToolTip = ("choose a lower size for a higher framerate")
+    Text = ("select video size")
+    { vga RadioButton
+      MoveScaled(2,2,18,5)
+      Text = ("640x480")
+    }
+    { svga RadioButton
+      MoveScaled(2,6,18,5)
+      Text = ("800x600")
+    }
+    { hd720 RadioButton
+      MoveScaled(2,10,18,5)
+      Text = ("1280x720")
+    }
+    { sxga RadioButton
+      MoveScaled(2,14,18,5)
+      Text = ("1280x1024")
+    }
+  }
+  { Label2 Label
+    MoveScaled(43,52,24,5)
+    ToolTip = ("ativated when dragging backwards, or by pressing the LEFT arrow")
+    Padding = 9
+    Text = ("time to seek backwards")
+  }
+  { TextBoxSeekback TextBox
+    MoveScaled(68,52,10,5)
+    ToolTip = ("float number of seconds")
+    Text = ("1.0")
+  }
+  { ButtonOK Button
+    MoveScaled(43,58,35,14)
+    Text = ("OK")
+  }
+  { ButtonCancel Button
+    MoveScaled(43,73,35,5)
+    Text = ("Cancel")
+  }
+}
