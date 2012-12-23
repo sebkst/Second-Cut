@@ -51,18 +51,17 @@ Private txtplaycmd As TextArea
 Private wasrunning As Boolean = True
 Const ALLOWEDKEYS As String = " srpqhfd" '' + key codes up down left right'
 
-
 Public Sub Form_Resize()
   
   Dim rr As Float = dimPlayVideo[0] / dimPlayVideo[1]
   Dim dr As Float
   
   '  panButton.Resize(Me.CLientW, btnOpen.h + cbVideoDevice.H)
- ' If (sbFrames.Visible And HBox2.Visible) Then 
- '   panButton.Move(0, Me.CLientH - VBox1.H, Me.CLientW, VBox1.H)
- ' Else
-    panButton.Move(0, Me.CLientH - VBox1.H, Me.CLientW, VBox1.H)
-'  Endif
+  ' If (sbFrames.Visible And HBox2.Visible) Then 
+  '   panButton.Move(0, Me.CLientH - VBox1.H, Me.CLientW, VBox1.H)
+  ' Else
+  panButton.Move(0, Me.CLientH - VBox1.H, Me.CLientW, VBox1.H)
+  '  Endif
   
   If dwgMoviePlayer.Visible Then
     dwgMoviePlayer.Move(0, 0, Me.ClientW - 0, Me.ClientH - panButton.H - 0)
@@ -79,30 +78,31 @@ Public Sub Form_Resize()
 End
 
 Public Sub relaxRuttonsAndSetSpeed(s As Float)
-
+  
   Dim t As ToggleButton 
+  
   For Each t In [btnPlayQuarter, btnPlayHalf, btnPlay, btnPlay2x, btnPlay4x]
     If Mouse.Inside(t) Then 
       If Not existingPlayer Then 
-        Print "WRONG CALL of relaxRuttonsAndSetSpeed pressed and activated: " & t.Name
+            If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "WRONG CALL of relaxRuttonsAndSetSpeed pressed and activated: " & t.Name
         isplaying = False
         Continue
       Endif
       
       If (s == playspeed) Then
         'there is NO need to change speed
-        Print "toggle pause/resume"
+            If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "toggle pause/resume"
         If (isplaying) Then
-          Print "now in pause"
+              If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "now in pause"
           Print #playps, " ";
           isplaying = False
         Else
-          Print "now resume"
+              If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "now resume"
           Print #playps, " ";
           isplaying = True
         Endif
       Else
-        Print "changing the speed for x" & CStr(s)
+            If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "changing the speed for x" & CStr(s)
         
         If (s == 0.25) And (playspeed > 0.3) Then Print #playps, "{";
         If (s == 0.25) And (playspeed > 0.9) Then Print #playps, "{";
@@ -129,15 +129,15 @@ Public Sub relaxRuttonsAndSetSpeed(s As Float)
         If (s == 4) And (playspeed < 1.2) Then Print #playps, "}";
         If (s == 4) And (playspeed < 2.2) Then Print #playps, "}";
         
-        If (isplaying) Then Print "let it play"
+        If (isplaying) And (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "let it play"
         If (Not isplaying) And existingPlayer And (s > playspeed) Then
-          Print "still playing"
+              If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "still playing"
           isplaying = True
         Endif
         If (Not isplaying) And existingPlayer And (s < playspeed) Then
           'Print "now resume"
           'Print #playps, " ";
-          Print "still playing"
+            If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "still playing"
           isplaying = True
         Endif
         
@@ -148,74 +148,72 @@ Public Sub relaxRuttonsAndSetSpeed(s As Float)
   Next 
   
   playspeed = s
-
+  
 End
 
 Public Sub btnPlay_Click()
-
+  
   If isrecording Then Me.stopRecording()  
   If existingPlayer Then
     relaxRuttonsAndSetSpeed(1)
   Else
     runMPlayer(recfile, 1)
   Endif
-
+  
 End
 
 Public Sub _new()
-
+  
   Dim m As String
+  
   Shell "which mplayer" To m
   If Len(m) <= 6 Then Message.Error("Error : MPlayer was not found.\nPlease install mplayer to use this software.\nsudo apt-get install mplayer", "Exit")
   If Len(m) <= 6 Then Quit 
   
-  
   If Trim(Application.Args[1]) == "-config" Then
-      If Exist(Conv$(Application.Args[2], Desktop.Charset, System.Charset)) Then
-         m = configurationFile
-         configurationFile = Conv$(Application.Args[2], Desktop.Charset, System.Charset)
-         getconfig()
-         configurationFile = User.Home & "/" & m
-      Else
-        Print "configuration file not found"
-        configurationFile = User.Home & "/" & configurationFile
-        If Exist(Conv$(configurationFile, Desktop.Charset, System.Charset)) Then
-          getconfig()
-        Endif       
-      Endif
+    If Exist(Conv$(Application.Args[2], Desktop.Charset, System.Charset)) Then
+      m = configurationFile
+      configurationFile = Conv$(Application.Args[2], Desktop.Charset, System.Charset)
+      getconfig()
+      configurationFile = User.Home & "/" & m
+    Else
+      Print "ERROR : configuration file not found, changing for default"
+      configurationFile = User.Home & "/" & configurationFile
+      If Exist(Conv$(configurationFile, Desktop.Charset, System.Charset)) Then
+        getconfig()
+      Endif       
+    Endif
   Else
-        configurationFile = User.Home & "/" & configurationFile
-        If Exist(Conv$(configurationFile, Desktop.Charset, System.Charset)) Then
-          getconfig()
-        Endif         
+    configurationFile = User.Home & "/" & configurationFile
+    If Exist(Conv$(configurationFile, Desktop.Charset, System.Charset)) Then
+      getconfig()
+    Endif         
   Endif
   
-  
+  txtAbout.text = ""
+  '
 End
 
-
-
 Public Sub prepareDwgMoviePlayer()
-
+  
   dwgMoviePlayer.Show
   txtAbout.Hide()
   'gives trouble If forRec Then sbFrames.Visible = False
   Form_Resize
   dwgMoviePlayer.Enabled = False
   
-
 End
 
 Public Sub runMPlayer(mp4 As String, speed As Float)
   
   Dim realplaypscmd As String
+  
   If Len(mp4) <= 0 Then Return
   
   dimPlayVideo = getDim(mp4)
+  
   prepareDwgMoviePlayer()
-  '  '.Mouse = Mouse.Default
-  '  Form_Resize
-  '  '.Enabled = FALSE
+  
   Try playps.kill
   
   Try inputplayps.Close()
@@ -225,22 +223,17 @@ Public Sub runMPlayer(mp4 As String, speed As Float)
   Shell "rm -f -v " & inputplaypsfile Wait
   inputplayps = Pipe inputplaypsfile For Write
   
-  
   $bShow = True
-  
-  'playps = Exec ["mplayer", "-wid", CStr(dwgMoviePlayer.Handle), "-speed", CStr(speed), Conv$(mp4, Desktop.Charset, System.Charset)] For Read Write As "Process"
-  
+    
   realplaypscmd = Replace(playcmd, "$(WINDOWID)", CStr(dwgMoviePlayer.Handle))
   realplaypscmd = Replace(realplaypscmd, "$(SPEED)", Replace(CStr(speed), ",", ".")) 
   realplaypscmd = Replace(realplaypscmd, "$(INPUTFILE)", Conv$(inputplaypsfile, Desktop.Charset, System.Charset)) 
   realplaypscmd = Replace(realplaypscmd, "$(FILE)", Conv$(mp4, Desktop.Charset, System.Charset))
-  Print "RUN: " & realplaypscmd
+      If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "RUN: " & realplaypscmd
   playps = Exec Split(realplaypscmd, " ", "", True) For Read Write As "PlayProcess"
   existingPlayer = True
   
   playspeed = speed
-  'dwgMoviePlayer.Hide
-  'timShow.Enabled = True
   isplaying = True
   txtcmd.Text = ""
   
@@ -264,7 +257,7 @@ Public Sub PlayProcess_Read()
   'Print sdata
   s = Trim(sData)
   i = InStr(s, "ANS_")
-  If i > 0 Then Print Split(Mid(s, i), "\n")[0]        
+  If i > 0 And dbg() Then Print Split(Mid(s, i), "\n")[0]        
   i = InStr(s, "ANS_time_pos=")
   If i > 0 Then     
     ar = Split(Mid(s, i), "\n", "", True)   
@@ -280,12 +273,11 @@ Public Sub PlayProcess_Read()
     'Print ar[3]
     Try CURFRAME = CInt(VIDEO_FPS * CFloat(ar[1]))
     If CURFRAME > sbFrames.MaxValue Then
-       
-       
-       CURFRAME = sbFrames.MaxValue
-       Print "time over at " & ar[1]
-       'sbFrames.MaxValue = CURFRAME
-       'ID_LENGTH = CFloat(CURFRAME) / VIDEO_FPS
+      
+      CURFRAME = sbFrames.MaxValue
+       If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "Time over at " & ar[1]
+      'sbFrames.MaxValue = CURFRAME
+      'ID_LENGTH = CFloat(CURFRAME) / VIDEO_FPS
     Endif
     sbFrames.Value = CURFRAME
     f = 0
@@ -293,17 +285,16 @@ Public Sub PlayProcess_Read()
     TIME_POS = f
     i = CInt(f) / 60
     txtcmd.Text = CStr(i) & ":" & Format(f - CFloat(60 * i), "00.0")
-
+    
     f = 0
     If 0 < InStr(s, "A-V:") Then
-     Try f = CFloat(Trim(ar[3]))
-     If Abs(f) > 1 Then
-       Print s
-       txtcmd.Text = ". " & txtcmd.Text 
-       ''txtcmd.Background = Color.Gray
-     Endif
-    Endif
-    '    Print ar[3]
+      Try f = CFloat(Trim(ar[3]))
+      If Abs(f) > 1 Then
+        If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & s
+        txtcmd.Text = ". " & txtcmd.Text 
+        ''txtcmd.Background = Color.Gray
+      Endif
+    Endif    
   Else ' not a string of status
     
     i = InStr(s, "VIDEO_FPS=")
@@ -313,7 +304,7 @@ Public Sub PlayProcess_Read()
       f = 0
       Try f = CFloat(Trim(ar[1]))
       If f <= 40 And f > 1.0 Then VIDEO_FPS = f
-      Print "found FPS: " & Trim(ar[1])
+      If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "found FPS: " & Trim(ar[1])
     Endif
     i = InStr(s, "ID_LENGTH=")
     If i > 0 Then 
@@ -321,9 +312,9 @@ Public Sub PlayProcess_Read()
       ar = Split(ar[0], "=", "", True, False)
       Try ID_LENGTH = CFloat(Trim(ar[1]))
       
-     ' If ID_LENGTH < 1 Then
-     '   Try ID_LENGTH = CFloat(Trim(ar[1]))
-     ' Endif
+      ' If ID_LENGTH < 1 Then
+      '   Try ID_LENGTH = CFloat(Trim(ar[1]))
+      ' Endif
       ' NOT IMPLEMENTED IN MPAYER
       ' Print #inputplayps, "set_property length " & CStr(ID_LENGTH)
       sbFrames.Enabled = True
@@ -331,15 +322,15 @@ Public Sub PlayProcess_Read()
       CURFRAME = 0
       sbFrames.Value = 0
       sbFrames.MinValue = 0
-      Print "found VIDEO length: " & Trim(ar[1])
+      If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "found VIDEO length: " & Trim(ar[1])
     Endif
-    'If InStr(s, "ID_") > 0 Then Print s
+    If dbg() And (InStr(s, "ID_") > 0) Then Print s
   Endif
-
+  
 End
 
 Public Sub PlayProcess_Kill()
-
+  
   Try playps.Drop()
   Try playps.Close()
   
@@ -349,49 +340,43 @@ Public Sub PlayProcess_Kill()
   $bShow = False
   dwgMoviePlayer.Hide
   txtAbout.Show
-  Print "STOPPING PLAYER****************"
+  If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "STOPPING PLAYER****************"
   playspeed = 1
   isplaying = False
   existingPlayer = False
-
+  
   Try inputplayps.Drop()
   Try inputplayps.Close()
   Try Shell "rm -f -v " & inputplaypsfile Wait
-
+  
 End
 
 Public Sub StopMovie()
-
+  
   Dim m As String
+  
   If Not existingPlayer Then Return
   
   btnPlay.Background = Color.Yellow
   Try Print #inputplayps, "quit"
-  Try Print #playps, "q";
   If Error Then
     Try playps.Kill
   Endif
-  'Try playps.Kill
-  
-  'Try playps.Kill
   While existingPlayer 
     Wait 0.02
-    Print ".";
-    '  Try playps.Kill
+    If dbg() Then Print ".";
   Wend
-  Print "playps is 0stop unrun 2crash" & playps.State
+  If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "playps is " & Split("stopped running crashed", " ")[playps.State]
   Shell "ps -f " & playps.Id To m
-  Print m
+  If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & m
   btnPlay.Background = Color.Black
   
 End
 
 Public Sub Form_Close()
-
   If isrecording Then Me.Stoprecording()  
   If existingPlayer Then Me.StopMovie() 
-   saveconfig()
-
+  saveconfig()
 End
 
 Public Sub btnOpen_Click()
@@ -403,35 +388,21 @@ Public Sub btnOpen_Click()
   
   If isrecording Then Me.stopRecording()  
   If existingPlayer Then StopMovie()
-  '  Wait 0.2
   recfile = Dialog.Path
   ID_LENGTH = 0  
   runMPlayer(recfile, 1)
-  
-  'movemouseto(btnPlay)
-  'btnPlay_Click()
   
 End
 
 Public Sub Form_Open()
   
-  '  If Exist(cbVideoDevice.List[1]) Then
-  '    cbVideoDevice.Text = cbVideoDevice.List[1]
-  '  Else
-  '    If Exist(cbVideoDevice.List[0]) Then
-  '       cbVideoDevice.Text = cbVideoDevice.List[0]
-  '    Else
-  '      cbVideoDevice.Text = "NOT FOUND"
-  '    Endif
-  '  Endif  s
-  'Print "Wid = "; Hex$(dwgMoviePlayer.id)
   If Len(recfile) > 0 Then btnPlay.Enabled = True
   txtcmd.SetFocus
   
   If geom.Count == 4 Then
     ' W x H + x + y
     Me.Move(geom[2], geom[3], geom[0], geom[1])
-
+    
   Endif
   
 End
@@ -440,33 +411,24 @@ Public Sub timShow_Timer()
   
   dwgMoviePlayer.Resize(1, 1)
   dwgMoviePlayer.Show
-  FORM_Resize
+  FORM_Resize()
   timShow.Enabled = False
   
 End
 
-Public Sub txtcmd_Activate()
-  '  Print "sending " & Trim(txtcmd.Text)
-  '  Try Print #playps, Trim(txtcmd.Text);
-  '  txtcmd.Text = ""  
-
-End
-
 Public Sub dwgMoviePlayer_MouseUp()
-
+  
   If isrecording Then Return
   Timframes.Stop  
   txtcmd.Background = Color.Black
-  'playspeed = 1
-  'Try Print #inputplayps, "speed_set 1.0"
-  'Try Print #inputplayps, "pause"
   
 End
 
 Public Sub dwgMoviePlayer_MouseMove()
-
- Dim f As Float = Abs(Mouse.ScreenX - Me.screenX - dwgMoviePlayer.x - (dwgMoviePlayer.W / 2))
- If isrecording Then Return
+  
+  Dim f As Float = Abs(Mouse.ScreenX - Me.screenX - dwgMoviePlayer.x - (dwgMoviePlayer.W / 2))
+  
+  If isrecording Then Return
   
   If (Mouse.ScreenX < Me.ScreenX) Or (Mouse.ScreenX > (Me.ScreenX + dwgMoviePlayer.W + dwgMoviePlayer.x)) Then Return
   If Not Mouse.Left Then Return
@@ -474,110 +436,63 @@ Public Sub dwgMoviePlayer_MouseMove()
   If (Mouse.ScreenX - Me.screenX - dwgMoviePlayer.x - (dwgMoviePlayer.W / 2)) < 0 Then 
     moveBackwards = True
   Else
-     moveBackwards = False  
+    moveBackwards = False  
   Endif
   If moveBackwards Then
-     Timframes.Delay = CInt(600 - f * 2.0 * 200.0 / dwgMoviePlayer.W)
-  '   txtcmd.Text = "< " & txtcmd.Text  
+    Timframes.Delay = CInt(600 - f * 2.0 * 200.0 / dwgMoviePlayer.W)
   Else
-     Timframes.Delay = CInt(99 + 700 - f * 2.0 * 700.0 / dwgMoviePlayer.W)
+    Timframes.Delay = CInt(99 + 700 - f * 2.0 * 700.0 / dwgMoviePlayer.W)
   Endif
   txtcmd.Background = Color.HSV(240 + 200 * f / dwgMoviePlayer.W, 255, 255)
   
 End
 
-
 Public Sub Timframes_Timer()
+  
   If moveBackwards Then
     Try Print #inputplayps, "seek -1" '-0.5" '-1"
-  '  Try Print #inputplayps, "get_time_pos"
-'   Try Print #playps, ",";
-'    Try Print #playps, "t";
     Try Print #inputplayps, "pause"    
- '   Try Print #inputplayps, "pause"    
   Else
     Try Print #playps, "."; 
   Endif
+  
 End
 
 Public Sub dwgMoviePlayer_MouseDown()
-
+  
   Dim f As Float
   
   If isrecording Then Return
   If Not existingPlayer Then Return
   
-  '  If (Mouse.x - (dwgMoviePlayer.W / 2)) < 0 Then Return
-  
   f = Abs(Mouse.ScreenX - Me.screenX - dwgMoviePlayer.x - (dwgMoviePlayer.W / 2))
   moveBackwards = (0 > (Mouse.ScreenX - Me.screenX - dwgMoviePlayer.x - (dwgMoviePlayer.W / 2))) 
   If moveBackwards Then
-     Timframes.Delay = CInt(600 - f * 2.0 * 200.0 / dwgMoviePlayer.W)
+    Timframes.Delay = CInt(600 - f * 2.0 * 200.0 / dwgMoviePlayer.W)
   Else
-     Timframes.Delay = CInt(99 + 700 - f * 2.0 * 700.0 / dwgMoviePlayer.W)
+    Timframes.Delay = CInt(99 + 700 - f * 2.0 * 700.0 / dwgMoviePlayer.W)
   Endif
   txtcmd.Background = Color.HSV(240 + 200 * f / dwgMoviePlayer.W, 255, 255)
-  
   Timframes.start()
-  
-'  If Not isplaying Then Timframes_Timer()  
-'  If Not isplaying Then Return
-  
-  '  If playspeed < 0.3 Then Mouse.Move(btnPlayQuarter.x, btnPlayQuarter.y)
-  '  If playspeed == 0.5 Then Mouse.Move(btnPlayHalf.x, btnPlayHalf.y)
-  '  If playspeed == 1 Then Mouse.Move(btnPlay.x, btnPlay.y)
-  '  If playspeed == 2 Then Mouse.Move(btnPlay2x.x, btnPlay2x.y)
-  '  If playspeed > 3.9 Then Mouse.Move(btnPlay4x.x, btnPlay4x.y)
-  
-'  If isplaying Then
-    'If playspeed < 0.3 Then btnPlayQuarter.Value = Not btnPlayQuarter.Value
-    'If playspeed == 0.5 Then btnPlayHalf.Value = Not btnPlayHalf.Value
-    'If playspeed == 1 Then btnPlay.Value = Not btnPlay.Value
-    'If playspeed == 2 Then btnPlay2x.Value = Not btnPlay2x.Value
-    'If playspeed > 3.9 Then btnPlay4x.Value = Not btnPlay4x.Value
-    
- '   If (playspeed < 0.3) Then Print #playps, "}";
- '   If (playspeed < 0.6) Then Print #playps, "}";
- '   If (playspeed > 1.9) Then Print #playps, "{";
- '   If (playspeed > 3.9) Then Print #playps, "{";
- '   playspeed = 1
-      If isplaying Then
-     '    playspeed = 0.17
-     '     Try Print #inputplayps, "speed_set 0.01"
-      Try Print #inputplayps, "pause"
-        Endif
-    isplaying = False
-    Timframes_Timer()
-    
-  'Endif
+  If isplaying Then Try Print #inputplayps, "pause"
+  isplaying = False
+  Timframes_Timer()
   
 End
 
-'  Print #playps, " ";
-
-'Endif
-' If isplaying Then Print "was playing"
-' If Not isplaying Then Print "was paused"
-' If isplaying Then 
-'    For Each t In [btnPlay, btnPlay2x, btnPlay4x, btnPlayHalf, btnPlayQuarter]
-'     t.Value = False
-'    Next
-' Endif 
-'   isplaying = Not isplaying
-
 Public Sub btnPlay2x_Click()
-
+  
   If isrecording Then Me.stopRecording()  
   If existingPlayer Then
     relaxRuttonsAndSetSpeed(2)
   Else
     runMPlayer(recfile, 2)
   Endif
-
+  
 End
 
 Public Sub btnPlay4x_Click()
-
+  
   If isrecording Then Me.stopRecording()  
   If existingPlayer Then
     relaxRuttonsAndSetSpeed(4)
@@ -588,29 +503,29 @@ Public Sub btnPlay4x_Click()
 End
 
 Public Sub btnPlayHalf_Click()
-
+  
   If isrecording Then Me.stopRecording()  
   If existingPlayer Then
     relaxRuttonsAndSetSpeed(0.5)
   Else
     runMPlayer(recfile, 0.5)
   Endif
-
+  
 End
 
 Public Sub btnPlayQuarter_Click()
-
+  
   If isrecording Then Me.stopRecording()  
   If existingPlayer Then
     relaxRuttonsAndSetSpeed(0.25)
   Else
     runMPlayer(recfile, 0.25)
   Endif
-
+  
 End
 
 Public Sub panButton_Arrange()
-
+  
   VBox1.h = 49
   If (sbFrames.Visible) Then VBox1.h = VBox1.H + sbFrames.H
   If (HBox2.Visible) Then VBox1.h = VBox1.H + HBox2.H
@@ -639,25 +554,28 @@ Public Sub panButton_Arrange()
 End
 
 Public Sub btnKill_Click()
-
-Shell "sleep 5s && killall -v -KILL mplayer gst-launch gst-launch-0.10 avconv" 
-If isrecording Then Me.Stoprecording()  
-If existingPlayer Then Me.StopMovie() 
-    
+  
+  Shell "sleep 3s && killall -v -KILL mplayer gst-launch gst-launch-0.10 avconv" 
+  If isrecording Then Me.Stoprecording()  
+  If existingPlayer Then Me.StopMovie() 
+  
 End
 
 Public Sub keyHasNoEffect() As Boolean 
+  
   If InStr(ALLOWEDKEYS, Lower(key.text)) > 0 Then Return False
   If Key.Code == Key.Left Then Return False
   If Key.Code == Key.right Then Return False
   If Key.Code == Key.up Then Return False
   If Key.Code == Key.Down Then Return False  
   Return True
+  
 End
+
 Public Sub txtcmd_KeyPress()
   
   If keyHasNoEffect() Then Return
-  If InStr(ALLOWEDKEYS, Lower(key.text)) > 0 Then Print "pressed " & Key.Text
+  If (InStr(ALLOWEDKEYS, Lower(key.text)) > 0) And (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "pressed " & Key.Text
   
   ' R: Record
   If "r" == Lower(Key.Text) Then 
@@ -667,8 +585,8 @@ Public Sub txtcmd_KeyPress()
   If existingPlayer And Not isrecording Then
     If "s" == Lower(Key.Text) Then Try Print #playps, "p";
     If " " == Lower(Key.Text) Then 
-       Try Print #playps, "p";
-       Stop Event
+      Try Print #playps, "p";
+      Stop Event
     Endif
   Endif
   
@@ -707,11 +625,11 @@ Public Sub txtcmd_KeyPress()
     Else
       Try Print #inputplayps, "seek -1.0" '-0.5"    
       isplaying = True
-'      Try Print #inputplayps, "pause"
+      '      Try Print #inputplayps, "pause"
       Stop Event
     Endif
   Endif
-
+  
   If (Key.Code == Key.up) Then 
     If isrecording Then Me.stopRecording()
     If Not existingPlayer Or CURFRAME < 30 Then 
@@ -720,7 +638,7 @@ Public Sub txtcmd_KeyPress()
     Else
       Try Print #inputplayps, "set_property time_pos 0" 
       Try Print #inputplayps, "pause"
-      Print "go to init"      
+      If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "go to init"      
       Stop Event
     Endif
   Endif
@@ -732,16 +650,15 @@ Public Sub txtcmd_KeyPress()
     Else
       Try Print #inputplayps, "set_property time_pos " & CStr(ID_LENGTH) 
       Try Print #inputplayps, "pause"
-      Print "go to end"
+      If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "go to end"
       Stop Event
     Endif
   Endif
-
   
 End
 
 Public Sub Stoprecording()
-
+  
   If Not isrecording Then Print "stop what ? I am not recording"
   
   If existingPlayer Then StopMovie() 
@@ -750,13 +667,13 @@ Public Sub Stoprecording()
   
   btnRec.Background = Color.Red
   Shell "kill -INT " & recps.Id Wait
-  Print "***sending: SIGINT To the recording Process"
+  If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "***sent: SIGINT To the recording Process"
   'Print #recps, "quit"
   While isrecording
     Wait 0.05
-    Print ".";
+    If dbg() Then Print ".";
   Wend
-  Print "\nend of recording"
+  If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "end of recording"
   
 End
 
@@ -778,50 +695,53 @@ Public Sub afterStopRecording()
   If i >= 4 Then Try Me.move(oldme[0], oldme[1], oldme[2], oldme[3])
   If Len(recfile) > 0 Then
     Shell "ls -sh " & recfile To m
-    Print "recorded :  " & m  
+    Print "recorded: file " & m  
   Endif
-
+  
   ID_LENGTH = 0
   ar = Split(txtcmd.Text, " ", "", True)
   If ar.Count == 2 Then
-     If Split(Trim(ar[1]), ":").Count == 3 Then
-        m = Trim(ar[1])
-        ar = Split(m, ":")
-        Try f = CFloat(ar[2])
-        Try f = f + 60 * CInt(ar[1])
-        Try f = f + 3600 * CInt(ar[0])
-        Print "just recorded : " & f & " seconds" 
-        ID_LENGTH = f        
-     Endif
+    If Split(Trim(ar[1]), ":").Count == 3 Then
+      m = Trim(ar[1])
+      ar = Split(m, ":")
+      Try f = CFloat(ar[2])
+      Try f = f + 60 * CInt(ar[1])
+      Try f = f + 3600 * CInt(ar[0])
+      Print "recorded: more than " & f & " seconds" 
+      ID_LENGTH = f        
+    Endif
   Endif
+  
 End
 
 Public Sub onbtnRec_Click()  
-
+  
   btnSaveDir.Enabled = False
   btnRec.Background = Color.Gray
-  'sbFrames.hide
-  'HBox2.hide  
-  'Me.Refresh
   
 End
 
 Public Sub btnRec_KeyRelease()
+  
   If keyHasNoEffect() Then Return
   txtcmd_KeyPress()
   txtcmd.Text &= Key.Text
+  
 End
+
 Public Sub btnRec_KeyPress()
+  
   Stop Event    
+  
 End
 
 Public Sub movemouseto(btn As ToggleButton)
-
+  
   Dim sx As Integer = btn.x + btn.W / 2
   Dim sy As Integer = btn.y + btn.H 
   Dim c As Container = btn.Parent
-
-  Print "mouse is at  " & Mouse.ScreenX & ", " & Mouse.screenY
+  
+  If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "mouse is at  " & Mouse.ScreenX & ", " & Mouse.screenY
   omx = Mouse.screenX
   omy = Mouse.screenY
   While True
@@ -831,103 +751,134 @@ Public Sub movemouseto(btn As ToggleButton)
     If Error Then Break
     Try c = c.Parent
     If Error Then Break
-    '       Try b = (c.Id == Me.id)
-    '       If Error Then Break
-    'If b Then Print "me"  
-    Print "*";
   Wend
-  Print "\ntarget is at " & sx & ", " & sy
+  If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "target is at " & sx & ", " & sy
   Mouse.Move(sx, sy)
-  Print "M0U5E is at  " & Mouse.screenX & ", " & Mouse.ScreenY
-
+  If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "M0U5E is at  " & Mouse.screenX & ", " & Mouse.ScreenY
+  
 End
 
 Public Sub moveMouseBack_Timer()
-
+  
   Mouse.Move(omx, omy)
   moveMouseBack.stop  
-
+  
 End
 
 Public Sub sbFrames_KeyRelease()
+  
   If keyHasNoEffect() Then Return
   txtcmd_KeyPress()
   txtcmd.Text &= Key.Text
+  
 End
 
 Public Sub btnKill_KeyRelease()
+  
   If keyHasNoEffect() Then Return
   txtcmd_KeyPress()
   txtcmd.Text &= Key.Text
+  
 End
+
 Public Sub btnOpen_KeyPress()
+  
   Stop Event    
+  
 End
+
 Public Sub btnKill_KeyPress()
+  
   Stop Event    
+  
 End
+
 Public Sub btnPlay2x_KeyPress()
+  
   Stop Event    
+  
 End
+
 Public Sub btnPlay4x_KeyPress()
+  
   Stop Event    
+  
 End
+
 Public Sub btnPlay_KeyPress()
+  
   Stop Event    
+  
 End
+
 Public Sub btnPlayHalf_KeyPress()
+  
   Stop Event    
+  
 End
+
 Public Sub btnPlayQuarter_KeyPress()
+  
   Stop Event    
+  
 End
 
 Public Sub btnOpen_KeyRelease()
+  
   If keyHasNoEffect() Then Return
   txtcmd_KeyPress()
   txtcmd.Text &= Key.Text
+  
 End
 
 Public Sub xxbtnPlay2x_KeyRelease()
+  
   If keyHasNoEffect() Then Return
   txtcmd_KeyPress()
   txtcmd.Text &= Key.Text
-
+  
 End
 
 Public Sub xxbtnPlay4x_KeyRelease()
+  
   If keyHasNoEffect() Then Return
   txtcmd_KeyPress()
   txtcmd.Text &= Key.Text
-
+  
 End
 
 Public Sub btnPlay_KeyRelease()
+  
   If keyHasNoEffect() Then Return
   txtcmd_KeyPress()
   txtcmd.Text &= Key.Text
+  
 End
 
 Public Sub btnPlayHalf_KeyRelease()
+  
   If keyHasNoEffect() Then Return
   txtcmd_KeyPress()
   txtcmd.Text &= Key.Text
+  
 End
 
 Public Sub btnPlayQuarter_KeyRelease()
+  
   If keyHasNoEffect() Then Return
   txtcmd_KeyPress()
   txtcmd.Text &= Key.Text
+  
 End
 
 Public Sub getcameras() As String[]
-
+  
   Dim m As String
   Dim r As String
   Dim c As String
   Dim cams As New String[]
   Dim ret As New String[]
-
+  
   Shell "ls -1 /dev/video*" To m 
   cams = Split(Trim(m), "\n")
   For Each c In cams
@@ -939,21 +890,20 @@ Public Sub getcameras() As String[]
     Shell "v4l-info " & c & " | grep -i -e '[ ]*card[ ]*:' | cut -d: -f2- " To m 
     r = r & "\n" & Trim(Replace(Trim(m), "\"", ""))
     ret.push(r)
-'    Print r
+    If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "found: " & r
   Next
-  
   Return ret
-
+  
 End
 
 Public Sub setTxtcmdText(t As String)
-
+  
   txtcmd.Text = t
-
+  
 End
 
 Public Sub hideDwgMoviePlayerForRecording()
-
+  
   Me.Border = False
   sbFrames.hide
   HBox2.Hide
@@ -962,30 +912,29 @@ Public Sub hideDwgMoviePlayerForRecording()
   dwgMoviePlayer.Resize(1, 1)
   txtAbout.Hide
   btnRec.Background = Color.Gray
-
+  
 End
 
 Public Sub getPanButtonHeight() As Integer
-
+  
   Return panButton.H
-
+  
 End
 
 Public Sub getDwgMoviePlayerHandle() As Integer
-
+  
   Return dwgMoviePlayer.Handle
-
+  
 End
 
 Private Sub getDim(f As String) As Integer[]
-
+  
   Dim m As String
   Dim n As String
   Dim ar As String[]
   Dim ret As Integer[]
-  'Dim mp As Process
+  
   Shell "file " & f To m
-  'Print m
   If InStr(Trim(m), " x ") > 0 Then
     ar = Split(Trim(m), ",")
     For Each n In ar
@@ -994,39 +943,15 @@ Private Sub getDim(f As String) As Integer[]
         Break
       Endif
     Next
-    'Print "found: " & m
     ar = Split(m, " x", "", True)
-    'Print "found: " & ar.count 
-    'Print "found: " & ar[1] 
-    'Print "found: " & ar[0] 
     
     Try ret = [CInt(Trim(ar[0])), CInt(Trim(ar[1]))]
-    Print "the size is " & ret[0] & " * " & ret[1]
+    If (Not Error ) And dbg() Then Print Format(Now, "[mm-dd hh:nn:ss]") & "video size is " & ret[0] & " * " & ret[1]
     If Not Error Then Return ret
   Endif
   
-  ' ' methodo with mplayer : 
-  ' Shell "mplayer -identify -frames 0 " & f To m
-  ' 
-  ' ar = Split(Trim(m), "\n", "", True)
-  ' ret = [dimRecVideo[0], dimRecVideo[1]]
-  ' For Each n In ar
-  '    i = InStr(Trim(n), "ID_VIDEO_WIDTH=")
-  '    If i > 0 Then
-  '      br = Split(Trim(n), "= ", "", True)
-  '      Try ret[0] = CInt(Trim(br[1]))
-  '    Endif    
-  '    i = InStr(Trim(n), "ID_VIDEO_HEIGHT=")
-  '    If i > 0 Then
-  '      br = Split(Trim(n), "= ", "", True)
-  '      Try ret[1] = CInt(Trim(br[1]))
-  '    Endif    
-  ' Next
-  ' If Not Error Then Print "the size is " & ret[0] & " * " & ret[1]
-  ' If Not Error Then Return ret
-  
   Return dimRecVideo
-
+  
 End
 
 Public Sub btnSaveDir_Click()
@@ -1070,7 +995,6 @@ Public Sub btnSaveDir_Click()
   frcam = New Frame(vbo)
   frcam.resize(w.ClientW / 2, w.ClientH / 6)
   frcam.Text = "Select video source"
-  'frcam.Show
   cams = getcameras()
   rbcam = New RadioButton[cams.Count]
   For i = 0 To cams.Max
@@ -1079,9 +1003,9 @@ Public Sub btnSaveDir_Click()
     rbcam[i].Text = Trim(Split(cams[i], "\n")[1])
     rbcam[i].Tooltip = Trim(Split(cams[i], "\n")[0])
     If videodevice == rbcam[i].Tooltip Then
-     rbcam[i].Value = True
+      rbcam[i].Value = True
     Else
-     rbcam[i].Value = False
+      rbcam[i].Value = False
     Endif
     rbcam[i].move(9, 20 + i * rbcam[i].h)
   Next
@@ -1116,34 +1040,28 @@ Public Sub btnSaveDir_Click()
     rbformat[i].Text = formats[i]
     rbformat[i].Tooltip = hformats[i]
     If 0 < InStr(recformat, rbformat[i].Tooltip) Then
-     rbformat[i].Value = True
-   ''  txtrecformat.text = Replace(recformat, "," & rbformat[i].Tooltip, "")
+      rbformat[i].Value = True
     Else
-     rbformat[i].Value = False
+      rbformat[i].Value = False
     Endif
     rbformat[i].move(9, 20 + i * rbformat[i].h)
   Next
   If rbformat[formats.Max].y + rbformat[formats.Max].H + 20 > frformat.h Then frformat.h = 20 + rbformat[formats.Max].y + rbformat[formats.Max].H 
-    
+  
   db = New Button(vbo) As "saverec_closebtn"
   db.Resize(w.ClientW / 2, vbo.ClientH - frformat.H - frcam.H - lbdirch.h - txtreccmd.h - lbplay.h - txtplaycmd.h)
   db.Text = "OK"
- 
+  
   w.ShowModal()
-  'Me.Enabled = False
-
+  
 End
-
-Public Sub saverec_Close()  
-  'Me.Enabled = True
-End
-
 
 Public Sub saverec_closebtn_click()
-  'Message.Info("ok") 
+  
   Dim r As RadioButton
   Dim ar As String[] = Split(recformat, ",")
   Dim i As Integer
+  
   Last.Window.Close()
   'Me.enabled = True  
   Try recdir = dirch.selectedPath
@@ -1165,87 +1083,91 @@ Public Sub saverec_closebtn_click()
   reccmd = Replace(txtreccmd.Text, "\n", "")
   playcmd = Replace(txtplaycmd.Text, "\n", "")
   saveconfig()
+  
 End
 
 Public Sub getconfig()
+  
   Dim m As String
   Dim s As String
   Dim c As File
+  
+  If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss]") & "open configuration file"
+  
   Try c = Open configurationFile For Read
   If Error Then
-    Print "error, could not save the configuration File"
+    Print "ERROR, could not save the configuration File"
     Return
   Endif
   Print
   For Each s In c.Lines
-     m = Trim(s)
-     If InStr(m, Object.Class(Me).Name & ".videodevice=") == 1 Then videodevice = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-     If InStr(m, Object.Class(Me).Name & ".saveto=") == 1 Then recdir = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-     If InStr(m, Object.Class(Me).Name & ".recordcommand=") == 1 Then reccmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-     If InStr(m, Object.Class(Me).Name & ".recordformat=") == 1 Then recformat = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-     If InStr(m, Object.Class(Me).Name & ".lastplayed=") == 1 Then recfile = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-     If InStr(m, Object.Class(Me).Name & ".playcommand=") == 1 Then playcmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-     If InStr(m, Object.Class(Me).Name & ".recordsize=") == 1 Then 
-         m = Trim(Mid(m, InStr(m, "=") + 1))
-         dimRecVideo = [1280, 720]
-         Try dimRecVideo[0] = CInt(Split(m, "x")[0]) 
-         Try dimRecVideo[1] = CInt(Split(m, "x")[1])
-         If Error Then Print "error getting recordsize from configuration file"
-         If Error Then Continue
-         dimPlayVideo = dimRecVideo
-     Endif
-     If InStr(m, Object.Class(Me).Name & ".geometry=") == 1 Then 
-         m = Trim(Mid(m, InStr(m, "=") + 1))
-         geom = [800, 800, 0, 0] ' format = WxH+x+y
-         Try geom[0] = CInt(Split(m, "x")[0])
-         If Error Then Print "error getting geometry from configuration file"
-         m = Split(m, "x")[1]
-         Try geom[1] = CInt(Split(m, "+")[0])
-         If Error Then Print "error getting geometry from configuration file"
-         Try geom[2] = CInt(Split(m, "+")[1])
-         If Error Then Print "error getting geometry from configuration file"
-         Try geom[3] = CInt(Split(m, "+")[2])
-         If Error Then Print "error getting geometry from configuration file"
-     Endif
-     
+    m = Trim(s)
+    If InStr(m, Object.Class(Me).Name & ".videodevice=") == 1 Then videodevice = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, Object.Class(Me).Name & ".saveto=") == 1 Then recdir = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, Object.Class(Me).Name & ".recordcommand=") == 1 Then reccmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, Object.Class(Me).Name & ".recordformat=") == 1 Then recformat = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, Object.Class(Me).Name & ".lastplayed=") == 1 Then recfile = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, Object.Class(Me).Name & ".playcommand=") == 1 Then playcmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, Object.Class(Me).Name & ".recordsize=") == 1 Then 
+      m = Trim(Mid(m, InStr(m, "=") + 1))
+      dimRecVideo = [1280, 720]
+      Try dimRecVideo[0] = CInt(Split(m, "x")[0]) 
+      Try dimRecVideo[1] = CInt(Split(m, "x")[1])
+      If Error Then Print "ERROR getting recordsize from configuration file"
+      If Error Then Continue
+      dimPlayVideo = dimRecVideo
+    Endif
+    If InStr(m, Object.Class(Me).Name & ".geometry=") == 1 Then 
+      m = Trim(Mid(m, InStr(m, "=") + 1))
+      geom = [800, 800, 0, 0] ' format = WxH+x+y
+      Try geom[0] = CInt(Split(m, "x")[0])
+      If Error Then Print "ERROR getting geometry from configuration file"
+      m = Split(m, "x")[1]
+      Try geom[1] = CInt(Split(m, "+")[0])
+      If Error Then Print "ERROR getting geometry from configuration file"
+      Try geom[2] = CInt(Split(m, "+")[1])
+      If Error Then Print "ERROR getting geometry from configuration file"
+      Try geom[3] = CInt(Split(m, "+")[2])
+      If Error Then Print "ERROR getting geometry from configuration file"
+    Endif
+    
   Next
   c.Close()
-
-
+  
+  If Not Exist(recfile) Or Not Exist(recdir) Or Not Exist(videodevice) Then Print "ERROR in the configration values read"
   If Not Exist(recfile) Then Print "recfile not found"
   If Not Exist(recdir) Then Print "recdir not found "
   If Not Exist(videodevice) Then Print "videodevice not found"  
   If Not Exist(recfile) Then recfile = ""
   If Not Exist(recdir) Then recdir = ""
   If Not Exist(videodevice) Then videodevice = ""
-
-    
+  
 End
 
 Public Sub saveconfig()
+  
   Dim c As File
   Dim m As String
   Dim ml As New String[]
   Dim i As Integer
-
+  
   Try c = Open configurationFile For Read
   If Not Error Then 
-   For Each m In c.Lines
-     Print m
-     ml.Push(m)
-   Next
-   c.Close
-   For i = 0 To ml.Max
-     If InStr(ml[i], Object.Class(Me).Name & ".videodevice=") == 1 Then ml[i] = Object.Class(Me).Name & ".videodevice=" & Quote(videodevice)
-     If InStr(ml[i], Object.Class(Me).Name & ".saveto=") == 1 Then ml[i] = Object.Class(Me).Name & ".saveto=" & Quote(recdir)
-     If InStr(ml[i], Object.Class(Me).Name & ".recordcommand=") == 1 Then ml[i] = Object.Class(Me).Name & ".recordcommand=" & Quote(reccmd)
-     If InStr(ml[i], Object.Class(Me).Name & ".recordformat=") == 1 Then ml[i] = Object.Class(Me).Name & ".recordformat=" & Quote(recformat)
-     If InStr(ml[i], Object.Class(Me).Name & ".lastplayed=") == 1 Then ml[i] = Object.Class(Me).Name & ".lastplayed=" & Quote(recfile)
-     If InStr(ml[i], Object.Class(Me).Name & ".geometry=") == 1 Then ml[i] = Object.Class(Me).Name & ".geometry=" & CStr(Me.w) & "x" & CStr(Me.H) & "+" & CStr(Me.ScreenX) & "+" & CStr(Me.screenY)
-     If InStr(ml[i], Object.Class(Me).Name & ".playcommand=") == 1 Then ml[i] = Object.Class(Me).Name & ".playcommand=" & Quote(playcmd)
-     If InStr(ml[i], Object.Class(Me).Name & ".recordsize=") == 1 Then ml[i] = Object.Class(Me).Name & ".recordsize=" & CStr(dimRecVideo[0]) & "x" & CStr(dimRecVideo[1])
-  
-   Next
+    For Each m In c.Lines
+      ml.Push(m)
+    Next
+    c.Close
+    For i = 0 To ml.Max
+      If InStr(ml[i], Object.Class(Me).Name & ".videodevice=") == 1 Then ml[i] = Object.Class(Me).Name & ".videodevice=" & Quote(videodevice)
+      If InStr(ml[i], Object.Class(Me).Name & ".saveto=") == 1 Then ml[i] = Object.Class(Me).Name & ".saveto=" & Quote(recdir)
+      If InStr(ml[i], Object.Class(Me).Name & ".recordcommand=") == 1 Then ml[i] = Object.Class(Me).Name & ".recordcommand=" & Quote(reccmd)
+      If InStr(ml[i], Object.Class(Me).Name & ".recordformat=") == 1 Then ml[i] = Object.Class(Me).Name & ".recordformat=" & Quote(recformat)
+      If InStr(ml[i], Object.Class(Me).Name & ".lastplayed=") == 1 Then ml[i] = Object.Class(Me).Name & ".lastplayed=" & Quote(recfile)
+      If InStr(ml[i], Object.Class(Me).Name & ".geometry=") == 1 Then ml[i] = Object.Class(Me).Name & ".geometry=" & CStr(Me.w) & "x" & CStr(Me.H) & "+" & CStr(Me.ScreenX) & "+" & CStr(Me.screenY)
+      If InStr(ml[i], Object.Class(Me).Name & ".playcommand=") == 1 Then ml[i] = Object.Class(Me).Name & ".playcommand=" & Quote(playcmd)
+      If InStr(ml[i], Object.Class(Me).Name & ".recordsize=") == 1 Then ml[i] = Object.Class(Me).Name & ".recordsize=" & CStr(dimRecVideo[0]) & "x" & CStr(dimRecVideo[1])
+      
+    Next
     m = "\n" & join(ml, "\n")
   Else
     m = ""
@@ -1258,10 +1180,10 @@ Public Sub saveconfig()
   If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".geometry=") Then m &= "\n" & Object.Class(Me).Name & ".geometry=" & CStr(Me.w) & "x" & CStr(Me.H) & "+" & CStr(Me.ScreenX) & "+" & CStr(Me.screenY)
   If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".playcommand=") Then m &= "\n" & Object.Class(Me).Name & ".playcommand=" & Quote(playcmd)
   If 0 >= InStr(m, "\n" & Object.Class(Me).Name & ".recordsize=") Then m &= "\n" & Object.Class(Me).Name & ".recordsize=" & CStr(dimRecVideo[0]) & "x" & CStr(dimRecVideo[1])
-
+  
   Try c = Open configurationFile For Create
   If Error Then
-    Print "error, could not save the configuration File"
+    Print "ERROR, could not save the configuration File"
     Return
   Endif
   ml = Split(Trim(m), "\n")
@@ -1269,30 +1191,38 @@ Public Sub saveconfig()
     Print #c, m
   Next
   c.Close()
-
-  Print "config saved. "
-  'Try c = Open configurationFile For Read
-  'If Not Error Then 
-  '  For Each m In c.Lines
-  '    Print m
-  '  Next
-  '  c.Close
-  'Endif
-
+  
+  If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss]") & "saved configuration: "
+  If (dbg()) Then
+    Try c = Open configurationFile For Read
+    If Not Error Then 
+      For Each m In c.Lines
+        Print m
+      Next
+      c.Close
+    Endif
+  Endif
+  Print "configuration saved."
+  
 End
 
 Public Sub formatReccmd(incmd As String, mp4 As String, dims As Integer[], vdev As String) As String
+  
   Dim r As String
+  
   r = Replace(incmd, "$(FILE)", Conv$(mp4, Desktop.Charset, System.Charset))
   r = Replace(r, "$(WIDTH)", CStr(dims[0]))
   r = Replace(r, "$(HEIGHT)", CStr(dims[1]))
   r = Replace(r, "$(VIDEODEVICE)", Conv$(vdev, Desktop.Charset, System.Charset))
   Return r
+  
 End
 
 Public Sub join(ar As String[], Optional sep As String = " ") As String
+  
   Dim r As String = ""
   Dim m As String
+  
   For Each m In ar
     If Len(r) <= 0 Then
       r = m
@@ -1301,37 +1231,46 @@ Public Sub join(ar As String[], Optional sep As String = " ") As String
     Endif    
   Next
   Return r
-End
-Public Sub sbFrames_MouseDown()
-    Dim f As Float
-    If isrecording Then Stop Event
-    If isrecording Then Return
-    If Not existingPlayer Then runMPlayer(recfile, 1)
-    'If Not existingPlayer Then Return
-    wasrunning = isplaying
-    f = CFloat(Mouse.x) / CFloat(sbFrames.W)
-    f = f - (0.5 - f) * 0.09
-    Try Print #inputplayps, "set_property time_pos " & Replace(CStr(CFloat(ID_LENGTH) * f), ",", ".")
-    Print "goto " & CStr(CFloat(ID_LENGTH) * f)
-    If Not wasrunning Then Try Print #inputplayps, "pause"  
-    Stop Event
-'    Try Print #inputplayps, "pause"  
-'    Try Print #inputplayps, "speed_set 0"  
-End
-Public Sub sbFrames_MouseUp()
-    If isrecording Then Stop Event
-    If isrecording Then Return
-    'If Not existingPlayer Then Stop Event
-    'If Not existingPlayer Then Return
-    sbFrames_MouseDown()
-    Stop Event
-'    Try Print #inputplayps, "speed_set " & Replace(CStr(playspeed), ",", ".") 
-'    If Not isplaying Then Try Print #inputplayps, "pause"  
-    
+  
 End
 
+Public Sub sbFrames_MouseDown()
+  
+  Dim f As Float
+  
+  If isrecording Then Stop Event
+  If isrecording Then Return
+  If Not existingPlayer Then runMPlayer(recfile, 1)
+  'If Not existingPlayer Then Return
+  wasrunning = isplaying
+  f = CFloat(Mouse.x) / CFloat(sbFrames.W)
+  f = f - (0.5 - f) * 0.09
+  Try Print #inputplayps, "set_property time_pos " & Replace(CStr(CFloat(ID_LENGTH) * f), ",", ".")
+  Print "goto " & CStr(CFloat(ID_LENGTH) * f)
+  If Not wasrunning Then Try Print #inputplayps, "pause"  
+  Stop Event
+  
+End
+
+Public Sub sbFrames_MouseUp()
+  
+  If isrecording Then Stop Event
+  If isrecording Then Return
+  sbFrames_MouseDown()
+  Stop Event
+  
+End
 
 Public Sub sbFrames_MouseMove()
+  
   Stop Event
+  
 End
 
+Static Public Function dbg() As Boolean
+  
+  If (Not Exist(Application.Args[0])) Or (InStr(Application.Env["_"], "bin/gambas3") > 0) Or (InStr(Application.Args[0], "bin/gambas3") > 0) Then Return True
+  If Application.Args.Count < 2 Then Return False
+  Return ((Application.Args[1] == "-d") Or (Application.Args[2] == "-d") Or (Application.Args[3] == "-d"))
+  
+End

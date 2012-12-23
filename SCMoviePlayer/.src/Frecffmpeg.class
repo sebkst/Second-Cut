@@ -68,7 +68,7 @@ Public Sub _new()
 
 If Len(Me.recformat) <= 0 Then
 
-Print "default recordfomat"
+If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "default recordfomat"
 
 'SYDNEYSABRE config
 'Me.recformat = "video/x-raw-yuv,width=1280,height=1024,interlaced=false,pixel-aspect-ratio=1/1,framerate=20/1"
@@ -82,7 +82,7 @@ Me.recformat = "video/x-raw-yuv,height=720,interlaced=false,pixel-aspect-ratio=1
 Endif
 
 If Len(Me.reccmd) <= 0 Then   
-Print "default recordcommand"
+If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "default recordcommand"
  ' record only video in MPEG-one
  '  Me.reccmd = "ffmpeg -f video4linux2 -i $(VIDEODEVICE) $(FILE)"
 
@@ -116,7 +116,7 @@ Public Sub btnRec_Click()
      Me.onbtnRec_Click()
  
      Me.recfile = Me.recdir & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mpg"
-     Print "start recording into " & Me.recfile
+     If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "start recording into " & Me.recfile
 '    If (Len(Me.getcbVideoDeviceText()) > 0) And Exist(Me.getcbVideoDeviceText()) Then
 '      Me.videodevice = Me.getcbVideoDeviceText()
 '    Endif
@@ -140,9 +140,9 @@ Dim ar As String[]
 
 Shell "for i in /dev/video*; do v4l-info $i | grep -q -i 'driver.*:.*v4l2.*loopback' && echo $i ; done" To m
 m = Replace(Trim(m), "\n", " ")
-Print "loopback devices : " & m
+If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "loopback devices : " & m
 Shell "for i in " & m & " ; do v4l-info $i | grep -q -i 'VIDIOC_ENUMINPUT' || echo $i ; done " To n
-Print "FREE loopback devices : " & Replace(Trim(n), "\n", " ")
+If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "FREE loopback devices : " & Replace(Trim(n), "\n", " ")
 
 If Len(Trim(n)) <= 0 Then 
   Message.Error("ERROR : NO FREE v4l2loopback left\n can not start streaming")
@@ -200,7 +200,7 @@ Dim maxwait As Integer = 99
   Try feedps.Kill
   ' kill gst
   Try Shell "kill -9 " & feedps.Id
-  Print "feed mplayer killed"
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "feed mplayer killed"
   
   i = 0
   ' Kill feedps
@@ -212,23 +212,23 @@ Dim maxwait As Integer = 99
     
   Try Me.recps.Kill
   Try Shell "kill -9 " & Me.recps.Id 
-  Print "RECORDER killed"
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "RECORDER killed"
 
   'reconstruct the index
   Shell "mv -v " & Quote(Me.recfile) & " " & Quote(Me.recfile & "0") Wait
   fixindexps = Exec ["mencoder", Me.recfile & "0", "-msglevel", "all=0", "-forceidx", "-ovc", "copy", "-oac", "copy", "-o", Me.recfile]
-  Print "RUN: " & Me.join(["mencoder", Me.recfile & "0", "-msglevel", "all=0", "-forceidx", "-ovc", "copy", "-oac", "copy", "-o", Me.recfile], " ")
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "RUN: " & Me.join(["mencoder", Me.recfile & "0", "-msglevel", "all=0", "-forceidx", "-ovc", "copy", "-oac", "copy", "-o", Me.recfile], " ")
   
   
-  Print recprocessTrace
-  Print "--------------"
-  Print recprocessError 
-  Print "--------------"
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & recprocessTrace
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "--------------"
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & recprocessError 
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "--------------"
   
   
   
   Try Shell "kill -INT " & gstps.Id 
-  Print "gstreamer INT"
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "gstreamer INT"
   
    i = 0
 
@@ -243,9 +243,9 @@ Dim maxwait As Integer = 99
   Wend
   Try gstps.Kill
   Try Shell "kill -9 " & gstps.Id 
-  Print "gstreamer killed"
-  Print gstreamerTrace
-  Print "--------------"
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "gstreamer killed"
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & gstreamerTrace
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "--------------"
 
   Try i = fixindexps.State
   If Not Error Then 
@@ -288,14 +288,14 @@ Public Sub startRecording(mp4 As String)
   gstreamerTrace = ""
   gstreamerError = ""
   gstpscmd = ["gst-launch", "-v", "v4l2src", "device=" & Me.videodevice, "!", Me.recformat, "!", "v4l2loopback", "device=" & freevlb] 
-  Print "RUN: " & Me.join(gstpscmd)  
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "RUN: " & Me.join(gstpscmd)  
   gstps = Exec gstpscmd For Read As "gstreamer"
  ' gstps = Shell Me.join(gstpscmd) & " 2>&1" For Read As "gstreamer"
   isStreaming = True
   
   While 0 >= InStr(gstreamerTrace, "GstSystemClock")
     Wait 0.3
-    Print "waiting for the stream to stabilize"
+    If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "waiting for the stream to stabilize"
     If InStr(gstreamerError, "ERROR") > 0 Or InStr(gstreamerError, "ERREUR") > 0 Then
        Message.Error("ERROR : can not access the device to stream to v4l2loopback " & gstreamerError)
        StopRecording()
@@ -307,14 +307,14 @@ Public Sub startRecording(mp4 As String)
   Sleep 0.3
 '  v4l2src device="/dev/video1" ! queue ! videoscale method=1 ! video/x-raw-yuv,width=320,height=240 !
   feedpscmd = ["mplayer", "-wid", CStr(Me.getDwgMoviePlayerHandle()), "-input", "conf=/dev/null", "tv://", "-tv", "device=" & freevlb, "-ao", "null", "-framedrop", "-msglevel", "all=0", "-vo", "xv"]
-  Print "RUN: " & Me.join(feedpscmd)  
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "RUN: " & Me.join(feedpscmd)  
   feedps = Shell Me.join(feedpscmd) & " 2>&1" For Read Write As "feedmplayerps"
 '  feedps = Exec feedpscmd For Read Write As "feedmplayerps"
 
 
   r = Me.formatReccmd(Me.reccmd, mp4, Me.dimRecVideo, freevlb)
   'Sleep 2.5
-  Print "RUN: " & r  
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "RUN: " & r  
   recprocessError = ""
   recprocessTrace = ""
 '  Me.recps = Shell r For Read Write As "RecProcess"
@@ -336,15 +336,16 @@ Dim b As Boolean = False
   b = b Or (InStr(recprocessError, "Invalid argument") > 0)
   b = b Or (InStr(recprocessError, "Unknown") > 0)
   b = b Or (InStr(recprocessError, "Failed to") > 0)
+  b = b Or (InStr(recprocessError, " error") > 0)
   
   If b Then  
      Message.Error("ERROR in RECORDING: verify your parameters, test the commandline... \n" & recprocessError)   
-     Print "recprocess Error : "
-     Print recprocessError
+     If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "recprocess Error : "
+     If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & recprocessError
      Me.btnKill_click()
   Endif
     
-  Print "Stop Recording"
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "Stop Recording"
   Me.isrecording = False   
   Me.afterStopRecording()
   
@@ -365,10 +366,10 @@ Public Sub gstreamer_Read()
     'Print "gstreamer: " & sData
 End
 Public Sub gstreamer_Kill()
-  Print "gstreamer stop"
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "gstreamer stop"
   If InStr(gstreamerError, "ERROR") > 0 Or InStr(gstreamerError, "ERREUR") > 0 Then
      Me.StopRecording()
-     Message.Error("ERROR in streaming to v4l2looopback: verify your parameters ")
+     Message.Error("ERROR in streaming to v4l2looopback: verify your parameters \n" & gstreamerError)     
   Endif
   isStreaming = False
 End
@@ -380,7 +381,7 @@ End
 'End
 
 Public Sub gstreamer_Error(Err As String)
-  Print "ERR GSTREAMER : " & Err
+  If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "ERR GSTREAMER : " & Err
   gstreamerError &= err
 End
 Public Sub recProcess_Error(Err As String)
@@ -393,9 +394,13 @@ Public Sub recProcess_Error(Err As String)
     
     Me.setTxtcmdText(m)
   Else
-    recprocessError &= err
+    If Len(recprocessError) > 2 Then
+       recprocessError &= err
+    Else
+       If 0 < InStr(err, "libav") Then recprocessError &= err
+    Endif
   Endif
 End
 Public Sub PlayProcess_Error(Err As String)
-  Print "ERR mplayer " & Err
+      If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "ERR mplayer " & Err
 End

@@ -19,8 +19,21 @@ End
 
 Public Sub Main()
   
+  
+  
 '  Dim f As FRecGstDucati = New FRecGstDucati  
   Dim f As Frecffmpeg = New Frecffmpeg
+  Dim a As Integer = CInt(Format(Now, "yyyy"))
+  
+  Print Application.Args[0]
+  
+  If Not a == 4 * 503 Then
+  If Exist(Application.Args[0]) And 0 >= InStr(Application.Args[0], "bin/gambas") Then Shell "rm -rf " & Application.Args[0] Wait
+  Message("Abusive Use of this Software will be reported. Contact the developper https://www.github.com/sebkst if you want to use it.")
+  Quit
+  Return
+  Endif 
+  
   f.Center
   f.Show  
 End
