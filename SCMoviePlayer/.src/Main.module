@@ -1,8 +1,6 @@
 ' Gambas module file
 
 
-
-
 Public Sub join(ar As String[], Optional sep As String = " ") As String
   
   Dim r As String = ""
@@ -20,7 +18,6 @@ Public Sub join(ar As String[], Optional sep As String = " ") As String
 End
 
 
-
 Public Sub MainPlay()
   Dim f As FDummyRec = New FDummyRec
   f.Show
@@ -36,14 +33,14 @@ Public Sub Main()
   
   
 '  Dim f As FRecGstDucati = New FRecGstDucati  
-  Dim f As Frecffmpeg = New Frecffmpeg
+  Dim f As FRecffmpeg = New FRecffmpeg
   Dim a As Integer = CInt(Format(Now, "yyyy"))
   
   Print Application.Args[0]
   
   If Not a == 4 * 503 Then
   If Exist(Application.Args[0]) And 0 >= InStr(Application.Args[0], "bin/gambas") Then Shell "rm -rf " & Application.Args[0] Wait
-  Message("Abusive Use of this Software will be reported. Contact the developper https://www.github.com/sebkst if you want to use it.")
+  Message("this is still a testing version. If you use this software, contact the developper https://www.github.com/sebkst.")
   Quit
   Return
   Endif 

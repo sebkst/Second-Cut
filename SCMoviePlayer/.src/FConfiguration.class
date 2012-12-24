@@ -39,6 +39,8 @@ Public Sub setup(f As FMoviePlayer)
     Endif
 
   Next
+  
+  TextBoxSeekback.Text = CStr(mainForm.seekBackwards)
     
 End
 
@@ -75,7 +77,9 @@ Public Sub ButtonOK_Click()
   Next
   mainForm.recformat = Main.join(ar, ",")
   Try mainForm.seekBackwards = CFloat(Trim(TextBoxSeekback.Text))
-    
+   
+  MConfiguration.saveconfig(mainForm, mainForm.configurationFile)
+   
   Me.Close()
 
 End

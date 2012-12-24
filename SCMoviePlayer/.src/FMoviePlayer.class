@@ -13,9 +13,9 @@ Private inputplayps As Stream
 Public recfile As String = "" ' = "/home/seb/Téléchargements/FL/sydneysabre/Second-Cut/f.flv"
 Public recdir As String = Conv$(User.home, Desktop.Charset, System.Charset)
 Public reccmd As String = ""
-Public playcmd As String = "mplayer -vo xv -vf scale -noframedrop -identify -osdlevel 0 -wid $(WINDOWID) -speed $(SPEED) -input file=$(INPUTFILE)  $(FILE)"
+Public playcmd As String = ""
 
-Public geom As Integer[] = [0] ' array of X Y W H
+Public geom As Integer[] = [0] ' array of W H X Y
 
 Public recformat As String = ""
 
@@ -77,7 +77,7 @@ Public Sub relaxRuttonsAndSetSpeed(s As Float)
   For Each t In [btnPlayQuarter, btnPlayHalf, btnPlay, btnPlay2x, btnPlay4x]
     If Mouse.Inside(t) Then 
       If Not existingPlayer Then 
-            If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "WRONG CALL of relaxRuttonsAndSetSpeed pressed and activated: " & t.Name
+         If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "WRONG CALL of relaxRuttonsAndSetSpeed pressed and activated: " & t.Name
         isplaying = False
         Continue
       Endif
@@ -87,40 +87,42 @@ Public Sub relaxRuttonsAndSetSpeed(s As Float)
             If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "toggle pause/resume"
         If (isplaying) Then
               If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "now in pause"
-          Print #playps, " ";
+          Try Print #inputplayps, "pause"
           isplaying = False
         Else
               If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "now resume"
-          Print #playps, " ";
+          Try Print #inputplayps, "pause"
           isplaying = True
         Endif
       Else
             If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "changing the speed for x" & CStr(s)
         
-        If (s == 0.25) And (playspeed > 0.3) Then Print #playps, "{";
-        If (s == 0.25) And (playspeed > 0.9) Then Print #playps, "{";
-        If (s == 0.25) And (playspeed > 1.9) Then Print #playps, "{";
-        If (s == 0.25) And (playspeed > 3.9) Then Print #playps, "{";
+        ' If (s == 0.25) And (playspeed > 0.3) Then Print #playps, "{";
+        ' If (s == 0.25) And (playspeed > 0.9) Then Print #playps, "{";
+        ' If (s == 0.25) And (playspeed > 1.9) Then Print #playps, "{";
+        ' If (s == 0.25) And (playspeed > 3.9) Then Print #playps, "{";
+        ' 
+        ' If (s == 0.5) And (playspeed < 0.3) Then Print #playps, "}";
+        ' If (s == 0.5) And (playspeed > 0.9) Then Print #playps, "{";
+        ' If (s == 0.5) And (playspeed > 1.9) Then Print #playps, "{";
+        ' If (s == 0.5) And (playspeed > 3.9) Then Print #playps, "{";
+        ' 
+        ' If (s == 1) And (playspeed < 0.3) Then Print #playps, "}";
+        ' If (s == 1) And (playspeed < 0.6) Then Print #playps, "}";
+        ' If (s == 1) And (playspeed > 1.9) Then Print #playps, "{";
+        ' If (s == 1) And (playspeed > 3.9) Then Print #playps, "{";
+        ' 
+        ' If (s == 2) And (playspeed < 0.3) Then Print #playps, "}";
+        ' If (s == 2) And (playspeed < 0.6) Then Print #playps, "}";
+        ' If (s == 2) And (playspeed < 1.2) Then Print #playps, "}";
+        ' If (s == 2) And (playspeed > 3.9) Then Print #playps, "{";
+        ' 
+        ' If (s == 4) And (playspeed < 0.3) Then Print #playps, "}";
+        ' If (s == 4) And (playspeed < 0.6) Then Print #playps, "}";
+        ' If (s == 4) And (playspeed < 1.2) Then Print #playps, "}";
+        ' If (s == 4) And (playspeed < 2.2) Then Print #playps, "}";
         
-        If (s == 0.5) And (playspeed < 0.3) Then Print #playps, "}";
-        If (s == 0.5) And (playspeed > 0.9) Then Print #playps, "{";
-        If (s == 0.5) And (playspeed > 1.9) Then Print #playps, "{";
-        If (s == 0.5) And (playspeed > 3.9) Then Print #playps, "{";
-        
-        If (s == 1) And (playspeed < 0.3) Then Print #playps, "}";
-        If (s == 1) And (playspeed < 0.6) Then Print #playps, "}";
-        If (s == 1) And (playspeed > 1.9) Then Print #playps, "{";
-        If (s == 1) And (playspeed > 3.9) Then Print #playps, "{";
-        
-        If (s == 2) And (playspeed < 0.3) Then Print #playps, "}";
-        If (s == 2) And (playspeed < 0.6) Then Print #playps, "}";
-        If (s == 2) And (playspeed < 1.2) Then Print #playps, "}";
-        If (s == 2) And (playspeed > 3.9) Then Print #playps, "{";
-        
-        If (s == 4) And (playspeed < 0.3) Then Print #playps, "}";
-        If (s == 4) And (playspeed < 0.6) Then Print #playps, "}";
-        If (s == 4) And (playspeed < 1.2) Then Print #playps, "}";
-        If (s == 4) And (playspeed < 2.2) Then Print #playps, "}";
+        Try Print #inputplayps, "speed_set " & CStr(s)
         
         If (isplaying) And (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "let it play"
         If (Not isplaying) And existingPlayer And (s > playspeed) Then
@@ -128,8 +130,8 @@ Public Sub relaxRuttonsAndSetSpeed(s As Float)
           isplaying = True
         Endif
         If (Not isplaying) And existingPlayer And (s < playspeed) Then
-          'Print "now resume"
-          'Print #playps, " ";
+          ' Print "now resume"
+          ' Try Print #inputplayps, "pause"
             If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "still playing"
           isplaying = True
         Endif
@@ -181,6 +183,10 @@ Public Sub _new()
     If Exist(Conv$(configurationFile, Desktop.Charset, System.Charset)) Then
       MConfiguration.getconfig(Me, Me.configurationFile)
     Endif         
+  Endif
+  
+  If Len(playcmd) <= 0 Then 
+     playcmd = "mplayer -vo xv -ac ffmp2, -demuxer lavf -noframedrop -identify -osdlevel 0 -wid $(WINDOWID) -speed $(SPEED) -input file=$(INPUTFILE) -input conf=/dev/null -nolirc -nojoystick -noar $(FILE)" 
   Endif
   
   txtAbout.text = ""
@@ -442,7 +448,7 @@ Public Sub Timframes_Timer()
     Try Print #inputplayps, "seek -" & CStr(seekBackwards)
     Try Print #inputplayps, "pause"    
   Else
-    Try Print #playps, "."; 
+    Try Print #inputplayps, "frame_step"
   Endif
   
 End
@@ -572,9 +578,9 @@ Public Sub txtcmd_KeyPress()
   Endif
   ' S: Stop
   If existingPlayer And Not isrecording Then
-    If "s" == Lower(Key.Text) Then Try Print #playps, "p";
+    If "s" == Lower(Key.Text) Then Try Print #inputplayps, "pause"
     If " " == Lower(Key.Text) Then 
-      Try Print #playps, "p";
+      Try Print #inputplayps, "pause"
       Stop Event
     Endif
   Endif
@@ -603,7 +609,7 @@ Public Sub txtcmd_KeyPress()
   If ("f" == Lower(Key.Text)) Or (Key.Code == Key.Right) Then 
     If isrecording Then Me.stopRecording()
     If Not existingPlayer Then runMPlayer(recfile, 1)
-    Try Print #playps, ".";
+    Try Print #inputplayps, "frame_step"
     Stop Event
   Endif
   If ("d" == Lower(Key.Text)) Or (Key.Code == Key.Left) Then 
@@ -924,7 +930,6 @@ Public Sub btnSaveDir_Click()
   Dim fconf As FConfiguration = New FConfiguration
   fconf.setup(Me)
   fconf.ShowModal()  
-  MConfiguration.saveconfig(Me, Me.configurationFile)
   
 End
 
@@ -940,21 +945,7 @@ Public Sub formatReccmd(incmd As String, mp4 As String, dims As Integer[], vdev 
   
 End
 
-Public Sub join(ar As String[], Optional sep As String = " ") As String
-  
-  Dim r As String = ""
-  Dim m As String
-  
-  For Each m In ar
-    If Len(r) <= 0 Then
-      r = m
-    Else
-      r = r & sep & m
-    Endif    
-  Next
-  Return r
-  
-End
+
 
 Public Sub sbFrames_MouseDown()
   

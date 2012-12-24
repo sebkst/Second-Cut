@@ -285,7 +285,6 @@ Public Sub startRecording(mp4 As String)
   If Len(mp4) <= 0 Then Return
   
   Me.oldme = []
-  Me.$bShow = True
   Me.dimPlayVideo = Me.dimRecVideo
   Me.prepareDwgMoviePlayer()
   
