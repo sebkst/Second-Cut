@@ -91,7 +91,7 @@ If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "default recordcomma
  ' in MPEG-2 with audio
 ' Me.reccmd = "ffmpeg -f alsa -i default -isync -f v4l2 -i $(VIDEODEVICE) -bf 1 -c:v mpeg2video $(FILE)"
  'too slow Me.reccmd = "ffmpeg -shortest -f alsa -i default -itsoffset 00:00:00 -ab 128k -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -me_method epzs -r 29.97 -g 45 -bf 2 -trellis 2 -cmp 2 -subcmp 2 -b:v 2500k -bt 300k -f vob $(FILE)"
-  Me.reccmd = "ffmpeg -shortest -f alsa -i default -itsoffset 00:00:00 -ab 128k -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -bf 2 -b:v 2500k -bt 300k $(FILE)"
+  Me.reccmd = "ffmpeg -shortest -f alsa -i default -itsoffset 00:00:00 -ab 128k -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -bf 2 -b:v 2500k -bt 300k -y ffmpeg -shortest -f alsa -i default -itsoffset 00:00:00 -ab 128k -f v4l2 -i /dev/video4 -c:v mpeg2video -pix_fmt yuv420p -bf 2 -b:v 2500k -bt 300k -q:v 30 -bufsize 64M -y $(FILE)"
  
   '"-async 1 -acodec mp2 -ab 192k -isync -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -me_method epzs -r 29.97 -g 45 -bf 2 -trellis 2 -cmp 2 -subcmp 2 -b:v 2500k -bt 300k -f vob $(FILE)"
 ' -itsoffset 00:00:00 -acodec ac3
@@ -224,6 +224,7 @@ Dim maxwait As Integer = 99
   If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "RECORDER killed"
 
   'reconstruct the index
+  
   Shell "mv -v " & Quote(Me.recfile) & " " & Quote(Me.recfile & "0") Wait
   fixindexps = Exec ["mencoder", Me.recfile & "0", "-msglevel", "all=0", "-forceidx", "-ovc", "copy", "-oac", "copy", "-o", Me.recfile]
   If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "RUN: " & Main.join(["mencoder", Me.recfile & "0", "-msglevel", "all=0", "-forceidx", "-ovc", "copy", "-oac", "copy", "-o", Me.recfile], " ")
@@ -393,12 +394,16 @@ Public Sub gstreamer_Error(Err As String)
   gstreamerError &= err
 End
 Public Sub recProcess_Error(Err As String)
-  Dim m As String
-  If InStr(err, "time=") Then
+  Dim m As String = ""
+  If InStr(err, "time=") > 0 Then
     'fps= 27 q=25.7 Lsize=    1017kB time=00:00:15.86 bitrate= 
-    m = Replace(Mid(err, InStr(err, "fps="), 8), " ", "") & " " 
-    err = Mid(err, 5 + InStr(err, "time="), 25)
-    m &= Mid(err, 1, -1 + InStr(err, "bitrate="))
+    If InStr(err, "fps=") > 0 Then m = Replace(Mid(err, InStr(err, "fps="), 8), " ", "") & " " 
+    err = Mid(err, 5 + InStr(err, "time="))
+    If InStr(err, "bitrate=") Then 
+        m &= Mid(err, 1, -1 + InStr(err, "bitrate="))
+    Else
+      m &= Split(err, "\n")[0]
+    Endif
     
     Me.setTxtcmdText(m)
   Else
