@@ -10,6 +10,7 @@ Private inputplaypsfile As String
 Private inputplayps As Stream
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Public filenameSkeleton As String = ""
 Public recfile As String = "" ' = "/home/seb/Téléchargements/FL/sydneysabre/Second-Cut/f.flv"
 Public recdir As String = Conv$(User.home, Desktop.Charset, System.Charset)
 Public reccmd As String = ""
@@ -53,7 +54,8 @@ Public Sub Form_Resize()
   ' If (sbFrames.Visible And HBox2.Visible) Then 
   '   panButton.Move(0, Me.CLientH - VBox1.H, Me.CLientW, VBox1.H)
   ' Else
-  panButton.Move(0, Me.CLientH - VBox1.H, Me.CLientW, VBox1.H)
+  'Move(0, Me.CLientH - VBox1.H, Me.CLientW)
+  panButton.Move(0, Me.CLientH - VBox1.H, Me.CLientW)
   '  Endif
   
   If dwgMoviePlayer.Visible Then
@@ -225,9 +227,9 @@ Public Sub runMPlayer(mp4 As String, speed As Float)
   realplaypscmd = Replace(playcmd, "$(WINDOWID)", CStr(dwgMoviePlayer.Handle))
   realplaypscmd = Replace(realplaypscmd, "$(SPEED)", Replace(CStr(speed), ",", ".")) 
   realplaypscmd = Replace(realplaypscmd, "$(INPUTFILE)", Conv$(inputplaypsfile, Desktop.Charset, System.Charset)) 
-  realplaypscmd = Replace(realplaypscmd, "$(FILE)", Conv$(mp4, Desktop.Charset, System.Charset))
+  realplaypscmd = Replace(realplaypscmd, "$(FILE)", Quote(Conv$(mp4, Desktop.Charset, System.Charset)))
       If (dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "RUN: " & realplaypscmd
-  playps = Exec Split(realplaypscmd, " ", "", True) For Read Write As "PlayProcess"
+  playps = Exec Split(realplaypscmd, " ", "\"", True, False) For Read Write As "PlayProcess"
   existingPlayer = True
   
   playspeed = speed
@@ -391,24 +393,24 @@ End
 
 Public Sub Form_Open()
   
-  If Len(recfile) > 0 Then btnPlay.Enabled = True
+  'If Len(recfile) > 0 Then 
+  '  btnPlay.Enabled = True
+    
   txtcmd.SetFocus
   
   If geom.Count == 4 Then
     ' W x H + x + y
     Me.Move(geom[2], geom[3], geom[0], geom[1])
-    
+
   Endif
   
 End
 
 Public Sub timShow_Timer()
-  
   dwgMoviePlayer.Resize(1, 1)
   dwgMoviePlayer.Show
   FORM_Resize()
   timShow.Enabled = False
-  
 End
 
 Public Sub dwgMoviePlayer_MouseUp()
@@ -520,10 +522,8 @@ Public Sub btnPlayQuarter_Click()
 End
 
 Public Sub panButton_Arrange()
-  
   VBox1.h = 49
   If (sbFrames.Visible) Then VBox1.h = VBox1.H + sbFrames.H
-  If (HBox2.Visible) Then VBox1.h = VBox1.H + HBox2.H
   VBox1.w = panButton.w
   HBox1.w = panButton.w
   If (HBox2.Visible) Then HBox2.w = panButton.w  
@@ -536,6 +536,7 @@ Public Sub panButton_Arrange()
     'Labelvd.W = panButton.W / 2 'HBox2.Children.Count
     ' cbVideoDevice.W = panButton.W / 4
   Endif
+  If (HBox2.Visible) Then VBox1.h = VBox1.H + HBox2.H
   
   btnOpen.W = panButton.W / 6 'HBox1.Children.Count
   btnPlayHalf.W = panButton.W / 6 'HBox1.Children.Count 
@@ -807,15 +808,11 @@ Public Sub btnPlay_KeyPress()
 End
 
 Public Sub btnPlayHalf_KeyPress()
-  
   Stop Event    
-  
 End
 
-Public Sub btnPlayQuarter_KeyPress()
-  
-  Stop Event    
-  
+Public Sub btnPlayQuarter_KeyPress()  
+  Stop Event      
 End
 
 Public Sub btnOpen_KeyRelease()
@@ -926,18 +923,24 @@ Private Sub getDim(f As String) As Integer[]
 End
 
 Public Sub btnSaveDir_Click()
-  
   Dim fconf As FConfiguration = New FConfiguration
   fconf.setup(Me)
   fconf.ShowModal()  
-  
+End
+Public Sub btnSaveDir_KeyRelease()  
+  If keyHasNoEffect() Then Return
+  txtcmd_KeyPress()
+  txtcmd.Text &= Key.Text  
+End
+Public Sub btnSaveDir_KeyPress()  
+   Stop Event
 End
 
 Public Sub formatReccmd(incmd As String, mp4 As String, dims As Integer[], vdev As String) As String
   
   Dim r As String
   
-  r = Replace(incmd, "$(FILE)", Conv$(mp4, Desktop.Charset, System.Charset))
+  r = Replace(incmd, "$(FILE)", Quote(Conv$(mp4, Desktop.Charset, System.Charset)))
   r = Replace(r, "$(WIDTH)", CStr(dims[0]))
   r = Replace(r, "$(HEIGHT)", CStr(dims[1]))
   r = Replace(r, "$(VIDEODEVICE)", Conv$(vdev, Desktop.Charset, System.Charset))

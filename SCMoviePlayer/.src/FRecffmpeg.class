@@ -100,6 +100,11 @@ If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "default recordcomma
 
 Endif
 
+If Len(Me.filenameSkeleton) <= 0 Then   
+   If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "default filenameSkeleton"
+   Me.filenameSkeleton = "Format(Now, \"yyyy-mmm-dd_hh-nn-ss\" ) & \".mpg\""    
+Endif
+
 If Exist(Me.videodevice) Then Me.btnRec.Enabled = True
 
 End 
@@ -119,7 +124,7 @@ Public Sub btnRec_Click()
   
      Me.onbtnRec_Click()
  
-     Me.recfile = Me.recdir & "/" & Format(Now, "yyyy-mmm-dd_hh-nn-ss") & ".mpg"
+     Me.recfile = Me.recdir & "/" & Eval(Me.filenameSkeleton)
      If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "start recording into " & Me.recfile
 '    If (Len(Me.getcbVideoDeviceText()) > 0) And Exist(Me.getcbVideoDeviceText()) Then
 '      Me.videodevice = Me.getcbVideoDeviceText()
@@ -322,7 +327,7 @@ Public Sub startRecording(mp4 As String)
   recprocessTrace = ""
 '  Me.recps = Shell r For Read Write As "RecProcess"
 '  Me.recps = Shell r & " 2>&1" For Read Write As "RecProcess"
-  Me.recps = Exec Split(r, " ", "", True) For Read Write As "RecProcess"
+  Me.recps = Exec Split(r, " ", "\"", True, False) For Read Write As "RecProcess"
   'dwgMoviePlayer.Hide
   'timShow.Enabled = True
   Me.setTxtcmdText("")
