@@ -44,7 +44,6 @@ Public Sub Main()
   Return
   Endif 
   
-  f.Center
   f.Show  
 End
 Public Sub MainGstreamer()
