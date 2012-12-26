@@ -3,7 +3,7 @@
 { Form Form
   MoveScaled(33.1429,15,104,55)
   Foreground = &HFFFFFF&
-  Text = ("Second Cut Movie player")
+  Text = ("Second Cut")
   Icon = Picture["logo.png"]
   Picture = Picture["centre.png"]
   { TxtAbout Label
@@ -84,7 +84,7 @@
           #Public = True
           Background = &H000000&
           Foreground = &HFFFFFF&
-          ToolTip = ("record")
+          ToolTip = ("configure")
           Picture = Picture["icon:/huge/save"]
         }
       }
@@ -94,13 +94,13 @@
           MoveScaled(0,0,22,5)
           Background = &H000000&
           Foreground = &HFFFFFF&
-          Alignment = Align.Right
+          Alignment = Align.Center
           ReadOnly = True
         }
         { btnKill Button
-          MoveScaled(23,0,5,5)
+          MoveScaled(23,0,16,5)
           Background = &H000000&
-          ToolTip = ("stop the movie")
+          ToolTip = ("brutally stop record/play")
           Picture = Picture["icon:/small/warning"]
         }
         { Labelvd Label
@@ -123,7 +123,7 @@
     }
   }
   { dwgMoviePlayer DrawingArea
-    MoveScaled(29,15,9,5)
+    MoveScaled(27,8,37,20)
     Visible = False
     Enabled = False
     Background = &H000000&

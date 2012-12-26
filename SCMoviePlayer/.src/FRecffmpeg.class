@@ -49,7 +49,7 @@ Public Sub _new()
   Shell "lsmod | grep v4l2loopback" To m
   If Len(m) <= 12 Then
    Er = Er & "Error : v4l2loopback module not found.\nPlease install the v4l2loopback module to use this software.\n"
-   Er = Er & "apt-get install v4l2loopback-source module-assistant \n sudo module-assistant auto-install v4l2loopback-source\n aptitude install v4l2loopback-source module-assistant\n sudo modprobe v4l2loopback"
+   Er = Er & "apt-get install v4l2loopback-source module-assistant \nsudo module-assistant auto-install v4l2loopback-source\nsudo modprobe v4l2loopback"
   Endif
   Shell "which v4l-info" To m
   If Len(m) <= 4 Then Er = Er & "Error : v4l-info not found.\nPlease install v4l-conf to use this software.\nsudo apt-get install v4l-conf\n"
@@ -91,7 +91,7 @@ If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "default recordcomma
  ' in MPEG-2 with audio
 ' Me.reccmd = "ffmpeg -f alsa -i default -isync -f v4l2 -i $(VIDEODEVICE) -bf 1 -c:v mpeg2video $(FILE)"
  'too slow Me.reccmd = "ffmpeg -shortest -f alsa -i default -itsoffset 00:00:00 -ab 128k -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -me_method epzs -r 29.97 -g 45 -bf 2 -trellis 2 -cmp 2 -subcmp 2 -b:v 2500k -bt 300k -f vob $(FILE)"
-  Me.reccmd = "ffmpeg -shortest -f alsa -i default -itsoffset 00:00:00 -ab 128k -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -bf 2 -b:v 2500k -bt 300k -y ffmpeg -shortest -f alsa -i default -itsoffset 00:00:00 -ab 128k -f v4l2 -i /dev/video4 -c:v mpeg2video -pix_fmt yuv420p -bf 2 -b:v 2500k -bt 300k -q:v 30 -bufsize 64M -y $(FILE)"
+  Me.reccmd = "ffmpeg -shortest -f alsa -i default -itsoffset 00:00:00 -ab 128k -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -bf 2 -b:v 2500k -bt 300k -q:v 30 -bufsize 64M -y $(FILE)"
  
   '"-async 1 -acodec mp2 -ab 192k -isync -f v4l2 -i $(VIDEODEVICE) -c:v mpeg2video -pix_fmt yuv420p -me_method epzs -r 29.97 -g 45 -bf 2 -trellis 2 -cmp 2 -subcmp 2 -b:v 2500k -bt 300k -f vob $(FILE)"
 ' -itsoffset 00:00:00 -acodec ac3

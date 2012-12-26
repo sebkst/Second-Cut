@@ -1,10 +1,12 @@
 # Gambas Form File 3.0
 
 { Form Form
-  MoveScaled(0,0,78.5714,78.5714)
+  MoveScaled(0,0,78,79)
+  Text = ("Configuration")
   Resizable = False
   { DirChooser1 DirChooser
-    MoveScaled(1,4,41,74)
+    MoveScaled(1,4,51,74)
+    ShowSplitter = False
   }
   { Label1 Label
     MoveScaled(0,0,41,4)
@@ -12,11 +14,11 @@
     Text = ("where to save the videos ?")
   }
   { frcam Frame
-    MoveScaled(43,1,35,31)
+    MoveScaled(53,1,24,26)
     Text = ("select video source")
   }
   { frsize Frame
-    MoveScaled(43,32,35,19)
+    MoveScaled(53,27,24,19)
     ToolTip = ("choose a lower size for a higher framerate")
     Text = ("select video size")
     { vga RadioButton
@@ -37,22 +39,24 @@
     }
   }
   { Label2 Label
-    MoveScaled(43,52,24,5)
+    MoveScaled(53,46,24,5)
     ToolTip = ("ativated when dragging backwards, or by pressing the LEFT arrow")
     Padding = 9
     Text = ("time to seek backwards")
   }
   { TextBoxSeekback TextBox
-    MoveScaled(68,52,10,5)
+    MoveScaled(59,51,12,5)
     ToolTip = ("float number of seconds")
     Text = ("1.0")
+    Alignment = Align.Center
   }
   { ButtonOK Button
-    MoveScaled(43,58,35,14)
+    MoveScaled(53,57,24,14)
     Text = ("OK")
+    Default = True
   }
   { ButtonCancel Button
-    MoveScaled(43,73,35,5)
+    MoveScaled(53,72,24,6)
     Text = ("Cancel")
   }
 }

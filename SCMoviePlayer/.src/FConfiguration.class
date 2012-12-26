@@ -60,6 +60,8 @@ Public Sub ButtonOK_Click()
   
   'Me.enabled = True  
   Try mainForm.recdir = DirChooser1.selectedPath
+  mainForm.videodevice = ""
+  mainForm.btnRec.Enabled = False  
   For Each r In rbcam
     If r.Value Then 
       mainForm.videodevice = r.Tooltip

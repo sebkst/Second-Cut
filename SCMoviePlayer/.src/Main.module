@@ -36,12 +36,11 @@ Public Sub Main()
   Dim f As FRecffmpeg = New FRecffmpeg
   Dim a As Integer = CInt(Format(Now, "yyyy"))
   
-  Print Application.Args[0]
   
   If Not a == 4 * 503 Then
   If Exist(Application.Args[0]) And 0 >= InStr(Application.Args[0], "bin/gambas") Then Shell "rm -rf " & Application.Args[0] Wait
   Message("this is still a testing version. If you use this software, contact the developper https://www.github.com/sebkst.")
-  Quit
+  Quit  
   Return
   Endif 
   

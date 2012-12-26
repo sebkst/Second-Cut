@@ -192,6 +192,11 @@ Public Sub _new()
   Endif
   
   txtAbout.text = ""
+  If Exist(videodevice) Then
+    btnRec.Enabled = True
+  Else  
+    btnRec.Enabled = False
+  Endif
   'btnRec.Enabled = False
 End
 
