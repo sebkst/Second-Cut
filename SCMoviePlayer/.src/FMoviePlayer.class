@@ -993,7 +993,7 @@ End
 
 
 Public Sub dbg() As Boolean
-  If (Not Exist(Application.Path & "/" & Application.Args[0])) Or (InStr(Application.Env["_"], "bin/gambas3") > 0) Or (InStr(Application.Args[0], "bin/gambas3") > 0) Then Return True
+  If (Not (Exist(Application.Path & "/" & Application.Args[0]) Or Exist(Application.Args[0]))) Or (InStr(Application.Env["_"], "bin/gambas3") > 0) Or (InStr(Application.Args[0], "bin/gambas3") > 0) Then Return True
   If Application.Args.Count < 2 Then Return False
   Return ((Application.Args[1] == "-d") Or (Application.Args[2] == "-d")) Or (Application.Args[3] == "-d")  
 End
