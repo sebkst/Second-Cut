@@ -122,8 +122,9 @@
       }
     }
   }
-  { dwgMoviePlayer DrawingArea
+  { !dwgMoviePlayer DrawingArea
     MoveScaled(27,8,37,20)
+    #Public = True
     Visible = False
     Enabled = False
     Background = &H000000&

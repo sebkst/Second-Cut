@@ -2,13 +2,20 @@
 
 Public mainForm As FMoviePlayer 
 Public rbcam As RadioButton[]
+Private videodevice As String = "_"
+Public oldrecformat As String
+Public originalheight As String = "_"
+Public newrecformat As String
+Public duringsetup As Boolean = True
+
 
 
 Public Sub setup(f As FMoviePlayer) 
   Dim cams As String[]
   Dim i As Integer
   Dim r As RadioButton
-  
+   
+  duringsetup = True
   mainForm = f
  
   DirChooser1.value = mainForm.recdir
@@ -17,31 +24,52 @@ Public Sub setup(f As FMoviePlayer)
   rbcam = New RadioButton[cams.Count]
   
   For i = 0 To cams.Max
-    rbcam[i] = New RadioButton(frcam)
+    rbcam[i] = New RadioButton(frcam) As "rbcamgroup"
     rbcam[i].AutoResize = True
     rbcam[i].Text = Trim(Split(cams[i], "\n")[1])
     rbcam[i].Tooltip = Trim(Split(cams[i], "\n")[0])
+
     If mainform.videodevice == rbcam[i].Tooltip Then
       rbcam[i].Value = True
+      notfoundcam.Hide()
+      notfoundcam.Tooltip = "not found"
+      videodevice = mainform.videodevice
     Else
       rbcam[i].Value = False
     Endif
     rbcam[i].move(14, 20 + i * (rbcam[i].h + 3))
   Next
+  If notfoundcam.Visible Then
+    notfoundcam.AutoResize = True
+    notfoundcam.text = "not found " & Quote(mainform.videodevice)
+    notfoundcam.Tooltip = mainform.videodevice
+    notfoundcam.Value = True
+    videodevice = mainform.videodevice
+  Endif
+  
+  Print "videodevice = " & mainform.videodevice
  ''' If rbcam[cams.Max].y + rbcam[cams.Max].H + 20 > frcam.h Then frcam.h = 20 + rbcam[cams.Max].y + rbcam[cams.Max].H 
+  
+  oldrecformat = mainForm.recformat
+  oldrecformat = Main.join(Split(oldrecformat, " ", "'", True, True), " ")
   
   For Each r In [vga, svga, sxga, hd720]
     
-    If 0 < InStr(mainform.recformat, "height=" & Split(r.Text, "x")[1]) Then
+    If 0 < InStr(oldrecformat, "height=" & Split(r.Text, "x")[1]) Then
+      originalheight = "height=" & Split(r.Text, "x")[1]
       r.Value = True
+      lbfps.y = r.y
+      lbfps.Text = mainForm.recFPS & " fps"
     Else
       r.Value = False
     Endif
 
-  Next
-  
+  Next  
+  newrecformat = oldrecformat
+    
   TextBoxSeekback.Text = CStr(mainForm.seekBackwards)
     
+  duringsetup = False
 End
 
 
@@ -52,32 +80,26 @@ Me.Close()
 End
 
 Public Sub ButtonOK_Click()
-
-    
-  Dim r As RadioButton
-  Dim ar As String[] = Split(mainForm.recformat, ",")
-  Dim i As Integer
-  
+      
   'Me.enabled = True  
   Try mainForm.recdir = DirChooser1.selectedPath
   mainForm.videodevice = ""
   mainForm.btnRec.Enabled = False  
-  For Each r In rbcam
-    If r.Value Then 
-      mainForm.videodevice = r.Tooltip
-      mainForm.btnRec.Enabled = True
-    Endif
-  Next
+  mainForm.videodevice = videodevice
+  If Not (videodevice == notfoundcam.Tooltip) Then mainForm.btnRec.Enabled = True
   
-  For Each r In [vga, svga, hd720, sxga]
-    If r.Value Then
-      Try mainForm.dimRecVideo = [CInt(Trim(Split(r.Text, "x")[0])), CInt(Trim(Split(r.Text, "x")[1]))] 
-      For i = 0 To ar.Max
-        If InStr(Lower(ar[i]), "height=") > 0 Then ar[i] = "height=" & Trim(Split(r.Text, "x")[1])
-      Next
-    Endif  
-  Next
-  mainForm.recformat = Main.join(ar, ",")
+  ' For Each r In [vga, svga, hd720, sxga]
+  '   If r.Value Then
+  '     Try mainForm.dimRecVideo = [CInt(Trim(Split(r.Text, "x")[0])), CInt(Trim(Split(r.Text, "x")[1]))] 
+  '     For i = 0 To ar.Max
+  '       If InStr(Lower(ar[i]), "height=") > 0 Then ar[i] = "height=" & Trim(Split(r.Text, "x")[1])
+  '     Next
+  '   Endif  
+  ' Next
+  ' mainForm.recformat = Main.join(ar, ",")
+
+  mainForm.recformat = newrecformat
+  
   Try mainForm.seekBackwards = CFloat(Trim(TextBoxSeekback.Text))
    
   MConfiguration.saveconfig(mainForm, mainForm.configurationFile)
@@ -111,4 +133,98 @@ Public Sub getcameras() As String[]
   Next
   Return ret
   
+End
+
+Public Sub testformat(f As String) As Boolean
+  Dim newheight As String = "height=" & Split(f, "x")[1]
+  Dim m As String = ""
+  Dim i As Integer = 20
+  
+  If duringsetup Then Return True
+  If notfoundcam.Visible And notfoundcam.Value Then Return True
+  
+   Print "testing " & newheight 
+   Try lbtesting.Text = "testing " & newheight 
+   Wait 0.09
+   Try Shell "gst-launch -v v4l2src device=" & videodevice & " ! 'video/x-raw-yuv," & newheight & "' !fakesink | grep -i -e 'gstfakesink.*framerate' & sleep " & CStr(mainForm.delayRecord * 3) & "s ; killall -v -KILL gst-launch gst-launch-0.10" To m
+   If Error Or Len(Trim(m)) < 3 Then 
+     Message.Error("configuration Error,\nmaybe you have not chosen any camera,\nmaybe the camera does not support " & f)
+     Print m
+     Return False
+   Endif  
+   If mainform.dbg() Then 
+     Print m
+     Try lbtesting.Text = Replace(m, ",", "\n")
+     Wait 3
+   Endif
+   ' get the "wanted" rate : 
+   m = Mid(m, InStr(m, "framerate"))
+   'Print m
+   m = Mid(m, InStr(m, ")") + 1)
+   m = Trim(Split(m, ",")[0])
+   'Print m
+   mainform.recFPS = CStr(Eval(m))
+'   If Len(originalheight) < 3 Then 
+'     originalheight = newheight
+'     oldrecformat = "video/x-raw-yuv," & originalheight    
+'   Endif
+'   If 0 >= InStr(oldrecformat, "framerate="& mainform.recFPS) Then oldrecformat = Replace(oldrecformat, "video/x-raw-yuv", "video/x-raw-yuv,framerate=" & mainform.recFPS)
+' 
+'   If InStr(Lower(m), mainform.recFPS) > 0 Then
+'     ' remove videorate from pipeline 
+'     newrecformat = Replace(oldrecformat, originalheight, newheight)
+'     newrecformat = Replace(newrecformat, "videorate !", "")
+' 
+'   Else
+'     If 0 >= InStr(oldrecformat, "videorate !") Then 
+'       newrecformat = "videorate ! " & oldrecformat
+'     Else 
+'       newrecformat = oldrecformat 
+'     Endif
+'     newrecformat = Replace(newrecformat, originalheight, newheight)
+'   Endif 
+'   If mainform.dbg() Then 
+'     Print newrecformat
+'     Try lbtesting.Text = Replace(newrecformat, ",", ",\n")
+'     Wait 2
+'   Endif
+' Endif
+
+  Try lbfps.y = Last.y
+  Try lbfps.Text = mainForm.recFPS & " fps"
+  Try i = CInt(mainform.recFPS)
+  If i < 20 Then 
+    mainform.reccmd = Replace(mainform.reccmd, " -r $(RECORDFPS) -vsync", " -vsync ")
+  Else
+    If 0 >= InStr(mainform.reccmd, " -r $(RECORDFPS)") Then mainform.reccmd = Replace(mainform.reccmd, " -vsync", " -r $(RECORDFPS) -vsync")
+  Endif  
+  newrecformat = Replace(oldrecformat, originalheight, newheight)
+  Try mainForm.dimRecVideo = [CInt(Trim(Split(f, "x")[0])), CInt(Trim(Split(f, "x")[1]))] 
+  Return True
+  
+End
+
+Public Sub vga_Click()
+  If Not duringsetup Then
+    Me.Enabled = False
+    Try lbtesting.Raise()
+    Try lbtesting.show()
+    testformat(Last.text)
+    Try lbtesting.hide()
+    Try Me.Enabled = True
+  Endif
+End
+Public Sub svga_Click()
+  vga_Click()
+End
+Public Sub sxga_Click()
+  vga_Click()
+End
+Public Sub hd720_Click()
+  vga_Click()
+End
+
+Public Sub rbcamgroup_Click()
+videodevice = Trim(Last.Tooltip)
+
 End

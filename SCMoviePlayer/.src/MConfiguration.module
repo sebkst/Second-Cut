@@ -8,6 +8,7 @@
 Public Sub saveconfig(f As FMoviePlayer, Optional configurationFile As String = "")
   
   Dim c As File
+  Dim pre As String = Object.Class(f).Name
   Dim m As String
   Dim ml As New String[]
   Dim i As Integer
@@ -21,33 +22,36 @@ Public Sub saveconfig(f As FMoviePlayer, Optional configurationFile As String = 
     Next
     c.Close
     For i = 0 To ml.Max
-      If InStr(ml[i], Object.Class(f).Name & ".videodevice=") == 1 Then ml[i] = Object.Class(f).Name & ".videodevice=" & Quote(f.videodevice)
-      If InStr(ml[i], Object.Class(f).Name & ".saveto=") == 1 Then ml[i] = Object.Class(f).Name & ".saveto=" & Quote(f.recdir)
-      If InStr(ml[i], Object.Class(f).Name & ".filenameskeleton=") == 1 Then ml[i] = Object.Class(f).Name & ".filenameskeleton=" & Quote(f.filenameskeleton)
-      If InStr(ml[i], Object.Class(f).Name & ".recordcommand=") == 1 Then ml[i] = Object.Class(f).Name & ".recordcommand=" & Quote(f.reccmd)
-      If InStr(ml[i], Object.Class(f).Name & ".recordformat=") == 1 Then ml[i] = Object.Class(f).Name & ".recordformat=" & Quote(f.recformat)
-      If InStr(ml[i], Object.Class(f).Name & ".lastplayed=") == 1 Then ml[i] = Object.Class(f).Name & ".lastplayed=" & Quote(f.recfile)
-      If InStr(ml[i], Object.Class(f).Name & ".geometry=") == 1 Then ml[i] = Object.Class(f).Name & ".geometry=" & CStr(f.w) & "x" & CStr(f.H) & "+" & CStr(f.X) & "+" & CStr(f.Y)
-      If InStr(ml[i], Object.Class(f).Name & ".playcommand=") == 1 Then ml[i] = Object.Class(f).Name & ".playcommand=" & Quote(f.playcmd)
-      If InStr(ml[i], Object.Class(f).Name & ".recordsize=") == 1 Then ml[i] = Object.Class(f).Name & ".recordsize=" & CStr(f.dimRecVideo[0]) & "x" & CStr(f.dimRecVideo[1])
-      If InStr(ml[i], Object.Class(f).Name & ".seekbackwards=") == 1 Then ml[i] = Object.Class(f).Name & ".seekbackwards=" & CStr(f.seekbackwards)
+      If InStr(ml[i], pre & ".videodevice=") == 1 Then ml[i] = pre & ".videodevice=" & Quote(f.videodevice)
+      If InStr(ml[i], pre & ".saveto=") == 1 Then ml[i] = pre & ".saveto=" & Quote(f.recdir)
+      If InStr(ml[i], pre & ".filenameskeleton=") == 1 Then ml[i] = pre & ".filenameskeleton=" & Quote(f.filenameskeleton)
+      If InStr(ml[i], pre & ".recordcommand=") == 1 Then ml[i] = pre & ".recordcommand=" & Quote(f.reccmd)
+      If InStr(ml[i], pre & ".recordformat=") == 1 Then ml[i] = pre & ".recordformat=" & Quote(f.recformat)
+      If InStr(ml[i], pre & ".recordFPS=") == 1 Then ml[i] = pre & ".recordFPS=" & Quote(f.recFPS)
+      If InStr(ml[i], pre & ".lastplayed=") == 1 Then ml[i] = pre & ".lastplayed=" & Quote(f.recfile)
+      If InStr(ml[i], pre & ".geometry=") == 1 Then ml[i] = pre & ".geometry=" & CStr(f.w) & "x" & CStr(f.H) & "+" & CStr(f.X) & "+" & CStr(f.Y)
+      If InStr(ml[i], pre & ".playcommand=") == 1 Then ml[i] = pre & ".playcommand=" & Quote(f.playcmd)
+      If InStr(ml[i], pre & ".recordsize=") == 1 Then ml[i] = pre & ".recordsize=" & CStr(f.dimRecVideo[0]) & "x" & CStr(f.dimRecVideo[1])
+      If InStr(ml[i], pre & ".seekbackwards=") == 1 Then ml[i] = pre & ".seekbackwards=" & CStr(f.seekbackwards)
+      If InStr(ml[i], pre & ".delayrecord=") == 1 Then ml[i] = pre & ".delayrecord=" & CStr(f.delayRecord)
       
     Next
     m = "\n" & Main.join(ml, "\n")
   Else
     m = ""
   Endif  
-  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".videodevice=") Then m &= "\n" & Object.Class(f).Name & ".videodevice=" & Quote(f.videodevice)
-  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".saveto=") Then m &= "\n" & Object.Class(f).Name & ".saveto=" & Quote(f.recdir)
-  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".filenameskeleton=") Then m &= "\n" & Object.Class(f).Name & ".filenameskeleton=" & Quote(f.filenameskeleton)
-  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".recordcommand=") Then m &= "\n" & Object.Class(f).Name & ".recordcommand=" & Quote(f.reccmd)
-  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".recordformat=") Then m &= "\n" & Object.Class(f).Name & ".recordformat=" & Quote(f.recformat)
-  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".lastplayed=") Then m &= "\n" & Object.Class(f).Name & ".lastplayed=" & Quote(f.recfile)
-  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".geometry=") Then m &= "\n" & Object.Class(f).Name & ".geometry=" & CStr(f.w) & "x" & CStr(f.H) & "+" & CStr(f.X) & "+" & CStr(f.Y)
-  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".playcommand=") Then m &= "\n" & Object.Class(f).Name & ".playcommand=" & Quote(f.playcmd)
-  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".recordsize=") Then m &= "\n" & Object.Class(f).Name & ".recordsize=" & CStr(f.dimRecVideo[0]) & "x" & CStr(f.dimRecVideo[1])
-  If 0 >= InStr(m, "\n" & Object.Class(f).Name & ".seekbackwards=") Then m &= "\n" & Object.Class(f).Name & ".seekbackwards=" & CStr(f.seekbackwards)
-  
+  If 0 >= InStr(m, "\n" & pre & ".videodevice=") Then m &= "\n" & pre & ".videodevice=" & Quote(f.videodevice)
+  If 0 >= InStr(m, "\n" & pre & ".saveto=") Then m &= "\n" & pre & ".saveto=" & Quote(f.recdir)
+  If 0 >= InStr(m, "\n" & pre & ".filenameskeleton=") Then m &= "\n" & pre & ".filenameskeleton=" & Quote(f.filenameskeleton)
+  If 0 >= InStr(m, "\n" & pre & ".recordcommand=") Then m &= "\n" & pre & ".recordcommand=" & Quote(f.reccmd)
+  If 0 >= InStr(m, "\n" & pre & ".recordformat=") Then m &= "\n" & pre & ".recordformat=" & Quote(f.recformat)
+  If 0 >= InStr(m, "\n" & pre & ".recordFPS=") Then m &= "\n" & pre & ".recordFPS=" & Quote(f.recFPS)
+  If 0 >= InStr(m, "\n" & pre & ".lastplayed=") Then m &= "\n" & pre & ".lastplayed=" & Quote(f.recfile)
+  If 0 >= InStr(m, "\n" & pre & ".geometry=") Then m &= "\n" & pre & ".geometry=" & CStr(f.w) & "x" & CStr(f.H) & "+" & CStr(f.X) & "+" & CStr(f.Y)
+  If 0 >= InStr(m, "\n" & pre & ".playcommand=") Then m &= "\n" & pre & ".playcommand=" & Quote(f.playcmd)
+  If 0 >= InStr(m, "\n" & pre & ".recordsize=") Then m &= "\n" & pre & ".recordsize=" & CStr(f.dimRecVideo[0]) & "x" & CStr(f.dimRecVideo[1])
+  If 0 >= InStr(m, "\n" & pre & ".seekbackwards=") Then m &= "\n" & pre & ".seekbackwards=" & CStr(f.seekbackwards)
+  If 0 >= InStr(m, "\n" & pre & ".delayrecord=") Then m &= "\n" & pre & ".delayrecord=" & CStr(f.delayRecord) 
   Try c = Open configurationFile For Create
   If Error Then
     Print "ERROR, could not save the configuration File"
@@ -76,6 +80,7 @@ End
 
 Public Sub getconfig(f As FMoviePlayer, Optional configurationFile As String = "")
   
+  Dim pre As String = Object.Class(f).Name
   Dim m As String
   Dim s As String
   Dim c As File
@@ -92,15 +97,17 @@ Public Sub getconfig(f As FMoviePlayer, Optional configurationFile As String = "
   Print
   For Each s In c.Lines
     m = Trim(s)
-    If InStr(m, Object.Class(f).Name & ".videodevice=") == 1 Then f.videodevice = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(f).Name & ".saveto=") == 1 Then f.recdir = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(f).Name & ".filenameskeleton=") == 1 Then f.filenameskeleton = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(f).Name & ".recordcommand=") == 1 Then f.reccmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(f).Name & ".recordformat=") == 1 Then f.recformat = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(f).Name & ".lastplayed=") == 1 Then f.recfile = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(f).Name & ".playcommand=") == 1 Then f.playcmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(f).Name & ".seekbackwards=") == 1 Then f.seekbackwards = CFloat(Trim(Mid(m, InStr(m, "=") + 1)))
-    If InStr(m, Object.Class(f).Name & ".recordsize=") == 1 Then 
+    If InStr(m, pre & ".videodevice=") == 1 Then f.videodevice = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, pre & ".saveto=") == 1 Then f.recdir = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, pre & ".filenameskeleton=") == 1 Then f.filenameskeleton = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, pre & ".recordcommand=") == 1 Then f.reccmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, pre & ".recordformat=") == 1 Then f.recformat = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, pre & ".recordFPS=") == 1 Then f.recFPS = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, pre & ".lastplayed=") == 1 Then f.recfile = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, pre & ".playcommand=") == 1 Then f.playcmd = UnQuote(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, pre & ".seekbackwards=") == 1 Then f.seekbackwards = CFloat(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, pre & ".delayrecord=") == 1 Then f.delayRecord = CFloat(Trim(Mid(m, InStr(m, "=") + 1)))
+    If InStr(m, pre & ".recordsize=") == 1 Then 
       m = Trim(Mid(m, InStr(m, "=") + 1))
       f.dimRecVideo = [1280, 720]
       Try f.dimRecVideo[0] = CInt(Split(m, "x")[0]) 
@@ -109,7 +116,7 @@ Public Sub getconfig(f As FMoviePlayer, Optional configurationFile As String = "
       If Error Then Continue
       f.dimPlayVideo = f.dimRecVideo
     Endif
-    If InStr(m, Object.Class(f).Name & ".geometry=") == 1 Then 
+    If InStr(m, pre & ".geometry=") == 1 Then 
       m = Trim(Mid(m, InStr(m, "=") + 1))
       f.geom = [800, 800, 0, 0] ' format = WxH+x+y
       Try f.geom[0] = CInt(Split(m, "x")[0])

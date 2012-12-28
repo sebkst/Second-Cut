@@ -4,6 +4,14 @@
   MoveScaled(0,0,78,79)
   Text = ("Configuration")
   Resizable = False
+  { lbtesting Label
+    MoveScaled(0,30,78,17)
+    Visible = False
+    Background = &HFF7F00&
+    Text = ("TESTING ...")
+    Alignment = Align.Center
+    Border = Border.Raised
+  }
   { DirChooser1 DirChooser
     MoveScaled(1,4,51,74)
     ShowSplitter = False
@@ -16,26 +24,36 @@
   { frcam Frame
     MoveScaled(53,1,24,26)
     Text = ("select video source")
+    { notfoundcam RadioButton rbcamgroup
+      Name = "notfoundcam"
+      MoveScaled(2,22,14,3)
+      ToolTip = ("other")
+      Text = ("other")
+    }
   }
   { frsize Frame
     MoveScaled(53,27,24,19)
     ToolTip = ("choose a lower size for a higher framerate")
     Text = ("select video size")
     { vga RadioButton
-      MoveScaled(2,2,18,5)
+      MoveScaled(2,2,14,5)
       Text = ("640x480")
     }
     { svga RadioButton
-      MoveScaled(2,6,18,5)
+      MoveScaled(2,6,14,5)
       Text = ("800x600")
     }
     { hd720 RadioButton
-      MoveScaled(2,10,18,5)
+      MoveScaled(2,10,14,5)
       Text = ("1280x720")
     }
     { sxga RadioButton
-      MoveScaled(2,14,18,5)
+      MoveScaled(2,14,14,5)
       Text = ("1280x1024")
+    }
+    { lbfps Label
+      MoveScaled(16,14,8,5)
+      Text = ("fps")
     }
   }
   { Label2 Label

@@ -28,7 +28,13 @@ Public Sub MainGUVC()
   f.Show  
 End
 
+
 Public Sub Main()
+'  Dim f As FRecffmpeg = New FRecffmpeg
+'  f.show   
+'End
+
+'Public Sub MainFRecffmpeg()
   
   
   

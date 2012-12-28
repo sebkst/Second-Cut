@@ -24,9 +24,11 @@ Public configurationFile As String = ".secondcut"
 
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 'Private dimRecVideo As Integer[] = [320, 240]
-Public dimRecVideo As Integer[] = [1280, 720] 
-'todo to add in rec params
-Const recFPS As Integer = 30
+Public dimRecVideo As Integer[] = [800, 600] 
+Public recFPS As String = "20"
+'time to delay the start of recording, becaause gstreamer is not immediate
+Public delayRecord As Float = 0.5
+
 Private VIDEO_FPS As Float = 30
 Private ID_LENGTH As Float
 Private TIME_POS As Float
@@ -941,13 +943,14 @@ Public Sub btnSaveDir_KeyPress()
    Stop Event
 End
 
-Public Sub formatReccmd(incmd As String, mp4 As String, dims As Integer[], vdev As String) As String
+Public Sub formatReccmd(incmd As String, mp4 As String, dims As Integer[], vdev As String, frmrate As String) As String
   
   Dim r As String
   
   r = Replace(incmd, "$(FILE)", Quote(Conv$(mp4, Desktop.Charset, System.Charset)))
   r = Replace(r, "$(WIDTH)", CStr(dims[0]))
   r = Replace(r, "$(HEIGHT)", CStr(dims[1]))
+  r = Replace(r, "$(RECORDFPS)", frmrate)
   r = Replace(r, "$(VIDEODEVICE)", Conv$(vdev, Desktop.Charset, System.Charset))
   Return r
   
@@ -988,10 +991,9 @@ Public Sub sbFrames_MouseMove()
   
 End
 
-Static Public Function dbg() As Boolean
-  
-  If (Not Exist(Application.Args[0])) Or (InStr(Application.Env["_"], "bin/gambas3") > 0) Or (InStr(Application.Args[0], "bin/gambas3") > 0) Then Return True
+
+Public Sub dbg() As Boolean
+  If (Not Exist(Application.Path & "/" & Application.Args[0])) Or (InStr(Application.Env["_"], "bin/gambas3") > 0) Or (InStr(Application.Args[0], "bin/gambas3") > 0) Then Return True
   If Application.Args.Count < 2 Then Return False
-  Return ((Application.Args[1] == "-d") Or (Application.Args[2] == "-d") Or (Application.Args[3] == "-d"))
-  
+  Return ((Application.Args[1] == "-d") Or (Application.Args[2] == "-d")) Or (Application.Args[3] == "-d")  
 End
