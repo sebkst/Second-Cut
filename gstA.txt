@@ -78,3 +78,185 @@ still udio too fast ... This is most likely because downstream can't keep up and
 
 
 
+luvcview 0.2.6
+
+SDL information:
+  Video driver: x11
+  A window manager is available
+Device information:
+  Device path:  /dev/video1
+{ pixelformat = 'YUYV', description = 'YUV 4:2:2 (YUYV)' }
+{ discrete: width = 640, height = 480 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 160, height = 120 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 176, height = 144 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 320, height = 240 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 352, height = 288 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 800, height = 600 }
+	Time interval between frame: 1/20, 
+{ discrete: width = 1280, height = 720 }
+	Time interval between frame: 1/10, 
+{ discrete: width = 1280, height = 1024 }
+	Time interval between frame: 1/5, 
+{ pixelformat = 'MJPG', description = 'MJPEG' }
+{ discrete: width = 640, height = 480 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 160, height = 120 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 176, height = 144 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 320, height = 240 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 352, height = 288 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 800, height = 600 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 1280, height = 720 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 1280, height = 1024 }
+	Time interval between frame: 1/20, 
+{ pixelformat = 'RGB3', description = 'RGB3' }
+{ discrete: width = 640, height = 480 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 160, height = 120 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 176, height = 144 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 320, height = 240 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 352, height = 288 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 800, height = 600 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 1280, height = 720 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 1280, height = 1024 }
+	Time interval between frame: 1/20, 
+{ pixelformat = 'BGR3', description = 'BGR3' }
+{ discrete: width = 640, height = 480 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 160, height = 120 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 176, height = 144 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 320, height = 240 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 352, height = 288 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 800, height = 600 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 1280, height = 720 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 1280, height = 1024 }
+	Time interval between frame: 1/20, 
+{ pixelformat = 'YU12', description = 'YU12' }
+{ discrete: width = 640, height = 480 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 160, height = 120 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 176, height = 144 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 320, height = 240 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 352, height = 288 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 800, height = 600 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 1280, height = 720 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 1280, height = 1024 }
+	Time interval between frame: 1/20, 
+{ pixelformat = 'YV12', description = 'YV12' }
+{ discrete: width = 640, height = 480 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 160, height = 120 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 176, height = 144 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 320, height = 240 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 352, height = 288 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 800, height = 600 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 1280, height = 720 }
+	Time interval between frame: 1/30, 
+{ discrete: width = 1280, height = 1024 }
+	Time interval between frame: 1/20,
+
+v4l2-ctl -d /dev/video1 --list-formats
+ioctl: VIDIOC_ENUM_FMT
+	Index       : 0
+	Type        : Video Capture
+	Pixel Format: 'YUYV'
+	Name        : YUV 4:2:2 (YUYV)
+
+	Index       : 1
+	Type        : Video Capture
+	Pixel Format: 'MJPG' (compressed)
+	Name        : MJPEG
+
+
+
+
+
+gst-launch -v v4l2src device=/dev/video1 ! video/x-raw-rgb,height=1024 ! videorate ! video/x-raw-rgb,framerate=30/1 ! ffmpegcolorspace !  video/x-raw-yuv ! v4l2loopback device=/dev/video4
+pb : computer too slow....
+use stamp ???
+
+gst-launch v4l2src device=/dev/video1 ! stamp sync-margin=1 sync-interval=1  ! 'video/x-raw-rgb,height=720' ! videorate ! video/x-raw-rgb,framerate=30/1 ! ffmpegcolorspace ! tee name=t ! queue ! ffvideoscale  ! video/x-raw-rgb,width=256 !  ximagesink sync=false force-aspect-ratio=true t. ! queue ! theoraenc quality=60 bitrate=1024000 !  queue ! mux. autoaudiosrc ! stamp sync-margin=1 sync-interval=1 ! queue ! audioconvert ! audioresample ! queue ! vorbisenc bitrate=128000 ! queue !  mux. oggmux name=mux ! queue  ! filesink location=/tmp/testAuR2.ogg
+
+still warning audio too slow...
+
+xwininfo -name gst-launch-0.10 | grep -e geometry -e xwininfo
+xwininfo: Window id: 0x3200003 "gst-launch-0.10"
+  -geometry 256x144+154+98
+
+$ xwininfo -name gst-launch-0.10 | grep -e geometry -e xwininfo
+
+xwininfo: Window id: 0x3200003 "gst-launch-0.10"
+  -geometry 256x144+154+98
+$ xwininfo -name gst-launch-0.10 | grep -e geometry -e xwininfo
+
+xwininfo: Window id: 0x3200003 "gst-launch-0.10"
+  -geometry 256x144+0+0
+
+ 
+4l2-ctl -d /dev/video1 -V
+Format Video Capture:
+	Width/Height  : 640/480
+	Pixel Format  : 'YUYV'
+	Field         : None
+	Bytes per Line: 1280
+	Size Image    : 614400
+	Colorspace    : SRGB
+
+v4l2-ctl -d /dev/video1 -v width=1280,height=720,pixelformat=1
+
+v4l2-ctl -d /dev/video1 -V
+Format Video Capture:
+	Width/Height  : 1280/720
+	Pixel Format  : 'MJPG'
+	Field         : None
+	Bytes per Line: 0
+	Size Image    : 1843200
+	Colorspace    : SRGB
+
+BUT GST-launch still sets YUY2 and fps=5 even with no caps
+
+maybe use the capture program from the v4l2 api example
+http://www.oz9aec.net/index.php/gstreamer/473-using-the-logitech-c920-webcam-with-gstreamer
+
+  #  ./capture -c 100000 -o | gst-launch -v -e filesrc location=/dev/fd/0 ! h264parse ! decodebin2 ! xvimagesink sync=false
+
+
+ gst-launch -v v4l2src device=/dev/video1 ! image/jpeg,height=720 ! stamp ! jpegdec ! ffmpegcolorspace ! v4l2loopback device=/dev/video4
+DOES IT
+
+ image/jpeg,height=720 ! stamp ! jpegdec ! ffmpegcolorspace 
+
+butstill computer too slow
