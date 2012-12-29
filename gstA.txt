@@ -1,0 +1,80 @@
+gst-launch --gst-debug  -v  v4l2src device=/dev/video1 ! ffmpegcolorspace ! ffvideoscale  ! video/x-raw-yuv,width=256,height=256 ! xvimagesink
+
+
+gst-launch -v v4l2src device=/dev/video1 ! 'video/x-raw-rgb,height=720' ! ffmpegcolorspace ! video/x-raw-yuv !  v4l2loopback device=/dev/video4
+....
+/GstPipeline:pipeline0/GstV4L2Loopback:v4l2loopback0.GstPad:sink: caps = video/x-raw-yuv, width=(int)1280, height=(int)720, format=(fourcc)YUY2, interlaced=(boolean)false, framerate=(fraction)30/1
+WARNING: from element /GstPipeline:pipeline0/GstV4L2Loopback:v4l2loopback0: A lot of buffers are being dropped.
+Additional debug info:
+gstbasesink.c(2866): gst_base_sink_is_too_late (): /GstPipeline:pipeline0/GstV4L2Loopback:v4l2loopback0:
+There may be a timestamping problem, or this computer is too slow.
+
+but; gstbasesink messge repeats :-(
+
+
+gst-launch -v -e v4l2src device=/dev/video1 ! 'video/x-raw-rgb,height=720' ! ffmpegcolorspace !  ximagesink 
+but this goes to 30fps without warning
+
+
+gst-launch -v -e v4l2src device=/dev/video1 ! 'video/x-raw-rgb,height=720' ! ffvideoscale  ! video/x-raw-rgb,width=256,height=256 !  ximagesink 
+ this goes too at 30fps without warning
+
+
+gst-launch -v -e v4l2src device=/dev/video1 ! 'video/x-raw-rgb,height=720' ! tee name=t ! queue ! ffvideoscale  ! video/x-raw-rgb,width=256,height=256 !  ximagesink t. ! queue ! fakesink
+OK :-)
+
+
+gst-launch -v -e v4l2src device=/dev/video1 ! 'video/x-raw-rgb,height=720' ! ffmpegcolorspace ! tee name=t ! queue ! ffvideoscale  ! video/x-raw-rgb,width=256,height=256 !  ximagesink t. ! queue ! theoraenc ! oggmux ! filesink location=/
+tmp/test.ogg
+
+gstbasesink.c(2866): gst_base_sink_is_too_late (): /GstPipeline:pipeline0/GstV4L2Loopback:v4l2loopback0:
+There may be a timestamping problem, or this computer is too slow.
+
+even when reducing the quality /or adding videorate lower framerate
+
+-------------------------
+or apply do_timestamps=true but not tried
+OR set sync=false for ximaagesink element
+
+gst-launch  -e v4l2src device=/dev/video1 ! 'video/x-raw-rgb,height=720' ! ffmpegcolorspace ! tee name=t ! queue ! ffvideoscale  ! video/x-raw-rgb,width=256,height=256 !  ximagesink sync=false t. ! queue ! theoraenc quality=60 ! oggmux ! filesink location=/tmp/test.ogg 
+OK
+
+
+ALSASRC not found
+gst-launch  -e v4l2src device=/dev/video1 ! 'video/x-raw-rgb,height=720' ! videorate ! video/x-raw-rgb,framerate=30/1 ! ffmpegcolorspace ! tee name=t ! queue ! ffvideoscale  ! video/x-raw-rgb,width=256,height=180 !  ximagesink sync=false t. ! queue ! theoraenc quality=60 ! queue ! mux. alsasrc device=hw:1,0 ! audio/x-raw-int,rate=48000,channels=2,depth=16 ! queue ! audioconvert ! queue ! vorbisenc ! queue ! mux. oggmux name=mux ! filesink location=/tmp/test.ogg 
+
+
+-----
+
+gst-launch  -e v4l2src device=/dev/video1 ! 'video/x-raw-rgb,height=720' ! videorate ! video/x-raw-rgb,framerate=30/1 ! ffmpegcolorspace ! tee name=t ! queue ! ffvideoscale  ! video/x-raw-rgb,width=256,height=180 !  ximagesink sync=false t. ! queue ! theoraenc quality=60 ! queue ! mux. autoaudiosrc ! queue ! audioconvert ! queue ! vorbisenc ! queue ! mux. oggmux name=mux ! filesink location=/tmp/test.ogg
+
+works but : 
+WARNING: from element /GstPipeline:pipeline0/GstAutoAudioSrc:autoaudiosrc0/GstPulseSrc:autoaudiosrc0-actual-src-puls: Can't record audio fast enough
+Additional debug info:
+gstbaseaudiosrc.c(838): gst_base_audio_src_create (): /GstPipeline:pipeline0/GstAutoAudioSrc:autoaudiosrc0/GstPulseSrc:autoaudiosrc0-actual-src-puls:
+Dropped 1171206 samples. This is most likely because downstream can't keep up and is consuming samples too slowly.
+
+same with vorbisenc quality=30
+
+gst-launch  -e v4l2src device=/dev/video1 ! 'video/x-raw-rgb,height=720' ! videorate ! video/x-raw-rgb,framerate=30/1 ! ffmpegcolorspace ! tee name=t ! queue ! ffvideoscale  ! video/x-raw-rgb,width=256 !  ximagesink sync=false force-aspect-ratio=true t. ! queue ! theoraenc quality=60 bitrate=128000 ! queue ! mux. pulsesrc  ! vorbisenc bitrate=128000 !  mux. oggmux name=mux ! queue  ! filesink location=/tmp/test.ogg
+Setting pipeline to PAUSED ...
+Pipeline is live and does not need PREROLL ...
+Setting pipeline to PLAYING ...
+New clock: GstAudioSrcClock
+WARNING: from element /GstPipeline:pipeline0/GstPulseSrc:pulsesrc0: Can't record audio fast enough
+Additional debug info:
+gstbaseaudiosrc.c(838): gst_base_audio_src_create (): /GstPipeline:pipeline0/GstPulseSrc:pulsesrc0:
+Dropped 1133118 samples. This is most likely because downstream can't keep up and is consuming samples too slowly.
+^CCaught interrupt -- handling interrupt.
+Interrupt: Stopping pipeline ...
+EOS on shutdown enabled -- Forcing EOS on the pipeline
+Waiting for EOS...
+ just one time
+BUT the pipeline doesnot close after one minute 
+
+
+gst-launch  -e v4l2src device=/dev/video1 ! 'video/x-raw-rgb,height=720' ! videorate ! video/x-raw-rgb,framerate=30/1 ! ffmpegcolorspace ! tee name=t ! queue ! ffvideoscale  ! video/x-raw-rgb,width=256 !  ximagesink sync=false force-aspect-ratio=true t. ! queue ! theoraenc quality=60 bitrate=1024000 ! queue ! mux. pulsesrc provide-clock=false ! vorbisenc bitrate=128000 !  mux. oggmux name=mux ! queue  ! filesink location=/tmp/testbr.ogg
+still udio too fast ... This is most likely because downstream can't keep up and is consuming samples too slowly.
+
+
+
