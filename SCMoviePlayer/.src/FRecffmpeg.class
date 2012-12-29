@@ -310,7 +310,7 @@ Public Sub startRecording(mp4 As String)
   gstpscmd = "gst-launch -v v4l2src device=" & Me.videodevice & " ! " & Me.recformat & " !  v4l2loopback device=" & freevlb 
   If (Me.dbg()) Then Print Format(Now, "[mm-dd hh:nn:ss] ") & "RUN: " & gstpscmd  
   gstps = Exec Split(gstpscmd, " ", "'", True, True) For Read As "gstreamer"
- ' gstps = Shell Main.join(gstpscmd) & " 2>&1" For Read As "gstreamer"
+ 'gstps = Shell Main.join(gstpscmd) & " 2>&1" For Read As "gstreamer"
   isStreaming = True
   i = 0
   While i < maxwait And 0 >= InStr(gstreamerTrace, "GstSystemClock")
